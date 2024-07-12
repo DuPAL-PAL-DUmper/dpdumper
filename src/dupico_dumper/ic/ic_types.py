@@ -4,4 +4,4 @@ from enum import Enum
 
 class ICType(Enum):
     ROM = 'ROM'
-    RAM = 'RAM'
+    SRAM = 'SRAM'
