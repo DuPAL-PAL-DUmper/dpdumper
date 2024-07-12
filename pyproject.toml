@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dupico_dumper"
+version = "0.0.1"
+description = "Tool to use the dupico as a dumping device"
+authors = [
+   { name = "Fabio Battaglia", email = "hkzlabnet@gmail.com" }
+]
+keywords = ["dupico", "DuPAL", "dumping"]
+readme = "README.md"
+license = { text = "CC BY-SA 4.0 DEED" }
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pyserial ~= 3.5",
+]
+
+[project.scripts]
+wdcloader = 'wdcloader.frontend:cli'
+
+[project.urls]
+repository = "https://github.com/hkzlab/dupico_dumper"
