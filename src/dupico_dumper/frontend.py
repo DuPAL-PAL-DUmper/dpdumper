@@ -51,10 +51,7 @@ def cli() -> int:
                                      stopbits = 1,
                                      parity = 'N',
                                      rtscts = True,
-                                     timeout = 1.0)
-            
-            if args.hw_version:
-                print('Suca!')
+                                     timeout = 5.0)
 
         except Exception as ex:
             if args.verbose:
