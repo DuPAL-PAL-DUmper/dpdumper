@@ -6,6 +6,7 @@ import traceback
 import serial
 
 from dupico_dumper import __name__, __version__
+from dupico_dumper.dumper_utilities import DumperUtilities
 
 def _build_argsparser() -> argparse.ArgumentParser:
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
@@ -24,16 +25,24 @@ def _build_argsparser() -> argparse.ArgumentParser:
                         nargs='?',
                         metavar="<serial port>",
                         help='Serial port associated with the board')
+    
+    mut_group = arg_group.add_mutually_exclusive_group()
+    mut_group.add_argument('--hw_version',
+                           action='store_true', 
+                           help='Read the hardware board version',
+                           required=False)
+
 
     return parser
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
 
-    if not args.port:        
+    if not args.port:
+        DumperUtilities.print_serial_ports()      
         return 1
     else:
-        ser_port: serial.Serial
+        ser_port: serial.Serial | None = None
 
         try:
             ser_port = serial.Serial(port = args.port,
@@ -43,6 +52,10 @@ def cli() -> int:
                                      parity = 'N',
                                      rtscts = True,
                                      timeout = 1.0)
+            
+            if args.hw_version:
+                print('Suca!')
+
         except Exception as ex:
             if args.verbose:
                 print(traceback.format_exc())
