@@ -3,4 +3,9 @@
 import importlib.metadata
 
 __name__: str = 'dupico_dumper'
-__version__: str = importlib.metadata.version(__name__)
+__version__: str = '0.0.0'
+
+try:
+    __version__ = importlib.metadata.version(__name__)
+except:
+    print('Could not fetch the version. Probably package not installed???')
