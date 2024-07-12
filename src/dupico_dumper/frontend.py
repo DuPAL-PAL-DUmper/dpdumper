@@ -50,8 +50,13 @@ def cli() -> int:
                                      bytesize = 8,
                                      stopbits = 1,
                                      parity = 'N',
-                                     rtscts = True,
                                      timeout = 5.0)
+
+            if not DumperUtilities.check_connection_string(ser_port):
+                print('Serial port connected, but the board did not respond in time.')
+                return -1
+            else:
+                print('Board connected...')
 
         except Exception as ex:
             if args.verbose:
