@@ -74,6 +74,21 @@ def _build_argsparser() -> argparse.ArgumentParser:
 
     return parser
 
+def test_command(ser: serial.Serial) -> None:
+    print('Testing the board, make sure the ZIF socket is empty!')
+    test_result: bool | None = BoardCommands.test_board(ser)
+
+    if test_result is None:
+        print('Unable to get a proper response.')
+    else:
+        print(f'Test result is {"OK" if test_result else "BAD"}!')
+
+def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, hiz_high: bool = False) -> None:
+    return
+
+def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
+    return
+
 def cli() -> int:
     args = _build_argsparser().parse_args()
 
@@ -108,13 +123,13 @@ def cli() -> int:
 
             match args.subcommand:
                 case Subcommands.TEST.value:
-                    print('Testing the board, make sure the ZIF socket is empty!')
-                    test_result: bool | None = BoardCommands.test_board(ser_port)
-
-                    if test_result is None:
-                        print('Unable to get a proper response.')
-                    else:
-                        print(f'Test result is {"OK" if test_result else "BAD"}!')                    
+                    test_command(ser_port)
+                case Subcommands.WRITE.value:
+                    write_command(ser_port, args.definition, args.infile)
+                case Subcommands.READ.value:
+                    read_command(ser_port, args.definition, args.outfile,
+                                 args.outfile_binary if args.outfile_binary else None,
+                                 args.hiz_high if args.hiz_high else False)
                 case _:
                     print(f'Unsupported command {args.subcommand}')
 
