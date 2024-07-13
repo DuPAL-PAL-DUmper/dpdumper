@@ -9,7 +9,7 @@ class ICDefinition:
     type: ICType
     address: list[int]
     data: list[int]
-    act_h_enable: list[int] = []
-    act_l_enable: list[int] = []
-    act_h_write: list[int] = []
-    act_l_write: list[int] = []
+    act_h_enable: list[int]
+    act_l_enable: list[int]
+    act_h_write: list[int]
+    act_l_write: list[int]

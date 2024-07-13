@@ -41,19 +41,16 @@ def _build_argsparser() -> argparse.ArgumentParser:
 
     parser_read = subparsers.add_parser(Subcommands.READ.value, help='Read data from an IC')
     parser_read.add_argument('-d', '--definition',
-                             nargs=1,
                              metavar='definition file',
                              help='Path to the file containing the definition of the IC to be read',
                              required=True)
     parser_read.add_argument('-o', '--outfile',
                              type=str,
-                             nargs=1,
                              metavar='output file',
                              help='Output file that will contain the data read from the IC in ASCII human-readable format',
                              required=True)
     parser_read.add_argument('-ob', '--outfile_binary',
                              type=str,
-                             nargs=1,
                              metavar='binary output file',
                              help='Binary output file that will contain the data read from the IC')
     parser_read.add_argument('--hiz_high',
@@ -63,13 +60,11 @@ def _build_argsparser() -> argparse.ArgumentParser:
 
     parser_write = subparsers.add_parser(Subcommands.WRITE.value, help='Write the content of a file into a supported (and writable) IC')
     parser_write.add_argument('-d', '--definition',
-                             nargs=1,
                              metavar='definition file',
                              help='Path to the file containing the definition of the IC to be written',
                              required=True)
     parser_write.add_argument('-i', '--infile',
                               type=str,
-                              nargs=1,
                               metavar='input file',
                               help='File with the contents that will be written to the IC',
                               required=True)
