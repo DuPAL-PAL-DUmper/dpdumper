@@ -12,8 +12,8 @@ class LLBoardUtilities:
     This class contains basic utilities for board access.
     """
 
-    MAX_RESPONSE_SIZE: int = 32
-    ENCODING: str = 'ASCII'
+    _MAX_RESPONSE_SIZE: int = 32
+    _ENCODING: str = 'ASCII'
 
     @classmethod
     def check_connection_string(cls, ser: serial.Serial) -> bool:
@@ -21,7 +21,7 @@ class LLBoardUtilities:
         response: str
 
         while retries > 0:
-            response = ser.readline(cls.MAX_RESPONSE_SIZE).decode(cls.ENCODING).strip()
+            response = ser.readline(cls._MAX_RESPONSE_SIZE).decode(cls._ENCODING).strip()
             if response and response == CommandTokens.BOARD_ENABLED.value:
                 return True
             retries = retries - 1
@@ -34,9 +34,9 @@ class LLBoardUtilities:
         if params:
             params.insert(0, '')
 
-        ser.write((f'{CommandTokens.CMD_START.value}{cmd.value}{' '.join(params)}{CommandTokens.CMD_END.value}').encode(cls.ENCODING))
+        ser.write((f'{CommandTokens.CMD_START.value}{cmd.value}{' '.join(params)}{CommandTokens.CMD_END.value}').encode(cls._ENCODING))
 
-        response: str = ser.readline(cls.MAX_RESPONSE_SIZE).decode(cls.ENCODING).strip()
+        response: str = ser.readline(cls._MAX_RESPONSE_SIZE).decode(cls._ENCODING).strip()
 
         if len(response) < 3 or response[0] != CommandTokens.RESP_START.value or response[-1] != CommandTokens.RESP_END.value:
             return None
