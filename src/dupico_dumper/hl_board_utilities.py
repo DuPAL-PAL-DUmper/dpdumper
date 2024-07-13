@@ -76,7 +76,9 @@ class HLBoardUtilities:
                 address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
                 data_mapped: int = ICUtilities.map_value_to_pins(ic.data, data[i])
 
-                # Set the data and enable writing
+                # Set data and address, but with writing disabled
+                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                # Enable writing
                 BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
                 # Disable writing before switching to the next address
                 BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
