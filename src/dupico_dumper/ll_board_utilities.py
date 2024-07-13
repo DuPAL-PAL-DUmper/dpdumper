@@ -41,4 +41,4 @@ class LLBoardUtilities:
         if len(response) < 3 or response[0] != CommandTokens.RESP_START.value or response[-1] != CommandTokens.RESP_END.value:
             return None
         else:
-            return response[1:-1]    @classmethod
+            return response[1:-1]
