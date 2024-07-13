@@ -11,6 +11,8 @@ from dupico_dumper import __name__, __version__
 from dupico_dumper.dumper_utilities import DumperUtilities
 from dupico_dumper.board_commands import BoardCommands
 from dupico_dumper.ll_board_utilities import LLBoardUtilities
+from dupico_dumper.ic.ic_loader import ICLoader
+from dupico_dumper.ic.ic_definition import ICDefinition
 
 MIN_SUPPORTED_MODEL: int = 3
 
@@ -84,9 +86,11 @@ def test_command(ser: serial.Serial) -> None:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
 def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, hiz_high: bool = False) -> None:
+    definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
+    definition: ICDefinition = ICLoader.extract_definition_from_file(deff)    
     return
 
 def cli() -> int:
