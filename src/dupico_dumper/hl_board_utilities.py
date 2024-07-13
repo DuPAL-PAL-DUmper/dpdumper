@@ -57,5 +57,27 @@ class HLBoardUtilities:
         return read_data
     
     @staticmethod
-    def write_ic(ser: serial.Serial, ic: ICDefinition, data: list[int]) -> bool:
-        return False
+    def write_ic(ser: serial.Serial, ic: ICDefinition, data: list[int]) -> None:
+        addr_combs: int = 1 << (len(ic.address) - 1) # Calculate the number of addresses that this IC supports
+
+        # Check that we have enough data (or not too much) to write
+        if addr_combs != len(data):
+            raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
+
+        act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
+
+        # These are to disable writing
+        wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF)
+
+        # These are to enable writing
+        wr_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_write, 0xFFFFFFFFFFFFFFFF)
+
+        for i in range(0, addr_combs):
+                address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
+                data_mapped: int = ICUtilities.map_value_to_pins(ic.data, data[i])
+
+                # Set the data and enable writing
+                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
+                # Disable writing before switching to the next address
+                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                
