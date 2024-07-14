@@ -12,6 +12,7 @@ class CommandTokens(Enum):
 
 
 class CommandCode(Enum):
+    EXTENDED_WRITE = 'E'
     WRITE = 'W'
     READ = 'R'
     RESET = 'K'

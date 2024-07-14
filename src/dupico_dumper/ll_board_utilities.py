@@ -16,8 +16,7 @@ class LLBoardUtilities:
     _ENCODING: str = 'ASCII'
 
     @classmethod
-    def check_connection_string(cls, ser: serial.Serial) -> bool:
-        retries: int = 10
+    def check_connection_string(cls, ser: serial.Serial, retries: int = 10) -> bool:
         response: str
 
         while retries > 0:
@@ -29,13 +28,21 @@ class LLBoardUtilities:
         return False
 
     @classmethod
-    def send_command(cls, ser: serial.Serial,  cmd: CommandCode, params: list[str] = [], retries: int = 5) -> str | None:
+    def send_command(cls, ser: serial.Serial, cmd: CommandCode, params: list[str] = [], retries: int = 5) -> str | None:
+        ser.write(cls.build_command(cmd, params))
+
+        return cls.read_response_string(ser, retries)
+    
+    @classmethod
+    def build_command(cls, cmd: CommandCode, params: list[str] = []) -> bytes:
         # If we have entries on the list, we'll use this trick to add a space at the beginning of the parameter list for command generation
         if params:
             params.insert(0, '')
 
-        ser.write((f'{CommandTokens.CMD_START.value}{cmd.value}{' '.join(params)}{CommandTokens.CMD_END.value}').encode(cls._ENCODING))
-
+        return f'{CommandTokens.CMD_START.value}{cmd.value}{' '.join(params)}{CommandTokens.CMD_END.value}'.encode(cls._ENCODING)
+    
+    @classmethod
+    def read_response_string(cls, ser: serial.Serial, retries: int = 5) -> str | None:
         while retries > 0:
             response: str = ser.readline(cls._MAX_RESPONSE_SIZE).decode(cls._ENCODING).strip()
 
