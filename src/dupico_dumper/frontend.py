@@ -37,6 +37,12 @@ def _build_argsparser() -> argparse.ArgumentParser:
                         metavar="serial port",
                         help='Serial port associated with the board')
     
+    parser.add_argument('-b', '--baudrate',
+                        type=int,
+                        metavar="Baud rate",
+                        default=115200,
+                        help='Speed at which to the serial port is opened')
+    
     subparsers = parser.add_subparsers(help='supported subcommands', dest='subcommand')
     subparsers.add_parser(Subcommands.TEST.value, help='Execute the selftest routine of the dupico board')
 
@@ -110,7 +116,7 @@ def cli() -> int:
 
         try:
             ser_port = serial.Serial(port = args.port,
-                                     baudrate=115200,
+                                     baudrate=args.baudrate,
                                      bytesize = 8,
                                      stopbits = 1,
                                      parity = 'N',
@@ -120,7 +126,7 @@ def cli() -> int:
                 print('Serial port connected, but the board did not respond in time.')
                 return -1
             
-            print('Board connected...')
+            print(f'Board connected @{args.baudrate}...')
             model: int | None = BoardCommands.get_model(ser_port)
             if model is None:
                 print('Unable to retrieve model number...')
