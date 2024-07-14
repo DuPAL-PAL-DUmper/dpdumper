@@ -11,6 +11,7 @@ from dupico_dumper import __name__, __version__
 from dupico_dumper.dumper_utilities import DumperUtilities
 from dupico_dumper.board_commands import BoardCommands
 from dupico_dumper.ll_board_utilities import LLBoardUtilities
+from dupico_dumper.hl_board_utilities import HLBoardUtilities, DataElement
 from dupico_dumper.ic.ic_loader import ICLoader
 from dupico_dumper.ic.ic_definition import ICDefinition
 
@@ -53,6 +54,10 @@ def _build_argsparser() -> argparse.ArgumentParser:
                              type=str,
                              metavar='binary output file',
                              help='Binary output file that will contain the data read from the IC')
+    parser_read.add_argument('--check_hiz',
+                             action='store_true',
+                             default=False,
+                             help='Check if data pins are Hi-Z or not. Slows down the read.')    
     parser_read.add_argument('--hiz_high',
                              action='store_true',
                              default=False,
@@ -80,12 +85,18 @@ def test_command(ser: serial.Serial) -> None:
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, hiz_high: bool = False) -> None:
-    definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
+def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False) -> None:
+    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
+    ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, ic_definition, check_hiz)
+
+    if ic_data is None:
+        print(f'Unable to read data from the IC {ic_definition.name}')
+        return
+
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
-    definition: ICDefinition = ICLoader.extract_definition_from_file(deff)    
+    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)    
     return
 
 def cli() -> int:
@@ -128,6 +139,7 @@ def cli() -> int:
                 case Subcommands.READ.value:
                     read_command(ser_port, args.definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
+                                 args.check_hiz if args.check_hiz else False,
                                  args.hiz_high if args.hiz_high else False)
                 case _:
                     print(f'Unsupported command {args.subcommand}')

@@ -29,16 +29,19 @@ class LLBoardUtilities:
         return False
 
     @classmethod
-    def send_command(cls, ser: serial.Serial,  cmd: CommandCode, params: list[str] = []) -> str | None:
+    def send_command(cls, ser: serial.Serial,  cmd: CommandCode, params: list[str] = [], retries: int = 5) -> str | None:
         # If we have entries on the list, we'll use this trick to add a space at the beginning of the parameter list for command generation
         if params:
             params.insert(0, '')
 
         ser.write((f'{CommandTokens.CMD_START.value}{cmd.value}{' '.join(params)}{CommandTokens.CMD_END.value}').encode(cls._ENCODING))
 
-        response: str = ser.readline(cls._MAX_RESPONSE_SIZE).decode(cls._ENCODING).strip()
+        while retries > 0:
+            response: str = ser.readline(cls._MAX_RESPONSE_SIZE).decode(cls._ENCODING).strip()
 
-        if len(response) < 3 or response[0] != CommandTokens.RESP_START.value or response[-1] != CommandTokens.RESP_END.value:
-            return None
-        else:
-            return response[1:-1]
+            if len(response) < 3 or response[0] != CommandTokens.RESP_START.value or response[-1] != CommandTokens.RESP_END.value:
+                retries = retries - 1
+            else:
+                return response[1:-1]
+        
+        return None

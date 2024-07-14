@@ -19,7 +19,7 @@ class HLBoardUtilities:
     """
 
     @staticmethod
-    def read_ic(ser: serial.Serial, ic: ICDefinition) -> list[DataElement] | None:
+    def read_ic(ser: serial.Serial, ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
         read_data: list[DataElement] = []
         addr_combs: int = 1 << (len(ic.address) - 1) # Calculate the number of addresses that this IC supports
 
@@ -31,17 +31,22 @@ class HLBoardUtilities:
             act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
             wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
 
+            addr_comb_hundredth: float = addr_combs / 100.0
             for i in range(0, addr_combs):
+                print(f'Reading address {i} of {addr_combs} - {i/addr_comb_hundredth:.1f}%')
                 address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
                 
                 # We will write the following, in sequence, and check their outputs for differences
                 # If there are differences on the data pins, it means the IC has data outputs in high-impedance state
-                out_data_h: int = data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
                 out_data_l: int = act_h_mapped | wr_l_mapped | address_mapped
-
-                read_pull_h: int | None = BoardCommands.write_pins(out_data_h)
-                read_pull_l: int | None = BoardCommands.write_pins(out_data_l)
-
+                read_pull_l: int | None = BoardCommands.write_pins(ser, out_data_l)
+                
+                if check_hiz:
+                    out_data_h: int = data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
+                    read_pull_h: int | None = BoardCommands.write_pins(ser, out_data_h)
+                else: # We're not checking for hi-z
+                    read_pull_h = read_pull_l
+                
                 if read_pull_h is None or read_pull_l is None:
                     return None
 
@@ -50,9 +55,12 @@ class HLBoardUtilities:
                 data_remapped: int = ICUtilities.map_pins_to_value(ic.data, read_pull_l)
                 hiz_remapped: int = ICUtilities.map_pins_to_value(ic.data, hiz_pins)
 
-                read_data.append(DataElement(data=data_remapped, hiz_pins=hiz_remapped))
+                read_data.append(DataElement(data=data_remapped, z_mask=hiz_remapped))
+        except Exception as exc:
+            print(exc)
         finally:
             BoardCommands.set_power(ser, False)
+            BoardCommands.write_pins(ser, 0)
 
         return read_data
     
@@ -81,11 +89,11 @@ class HLBoardUtilities:
                 data_mapped: int = ICUtilities.map_value_to_pins(ic.data, data[i])
 
                 # Set data and address, but with writing disabled
-                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
                 # Enable writing
-                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
+                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
                 # Disable writing before switching to the next address
-                BoardCommands.write_pins(address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
         finally:
             BoardCommands.set_power(ser, False)
 

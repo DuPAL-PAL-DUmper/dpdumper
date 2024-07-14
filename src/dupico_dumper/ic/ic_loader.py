@@ -8,6 +8,7 @@ import tomllib
 
 @final
 class ICLoader:
+    _KEY_NAME: str = 'name'
     _KEY_TYPE: str = 'type'
     _KEY_PINOUT: str = 'pinout'
     _KEY_PINOUT_ADDRESS:str = 'address'
@@ -22,7 +23,8 @@ class ICLoader:
         with open(filepath, "rb") as f:
             toml_data: dict[str, Any] = tomllib.load(f)
             type: ICType = ICType(toml_data[cls._KEY_TYPE])
-            return ICDefinition(type=type,
+            return ICDefinition(name=toml_data[cls._KEY_NAME],
+                                type=type,
                                 address=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_ADDRESS],
                                 data=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_DATA],
                                 act_h_enable=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_H_ENABLE],

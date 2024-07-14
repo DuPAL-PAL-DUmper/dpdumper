@@ -6,6 +6,7 @@ from dupico_dumper.ic.ic_types import ICType
 
 @dataclass
 class ICDefinition:
+    name: str
     type: ICType
     address: list[int]
     data: list[int]
