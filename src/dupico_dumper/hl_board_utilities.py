@@ -75,7 +75,7 @@ class HLBoardUtilities:
             pin_map_gen = _write_pin_map_generator(ic, addr_combs, check_hiz, block_size)
             
             for i, pin_map in enumerate(_grouped(pin_map_gen, block_size)):
-                print(f'Writing block {i+1}/{int(tot_blocks)}')
+                print(f'Testing block {i+1}/{int(tot_blocks)}')
                 ser.write(LLBoardUtilities.build_command(CommandCode.EXTENDED_WRITE, [f'{entry:0{16}X}' for entry in pin_map]))
 
                 for _ in range(0, 8):
