@@ -128,7 +128,7 @@ def cli() -> int:
                 print('Serial port connected, but the board did not respond in time.')
                 return -1
             
-            print(f'Board connected @{args.baudrate}...')
+            print(f'Board connected @{args.port}, speed:{args.baudrate} ...')
             model: int | None = BoardCommands.get_model(ser_port)
             if model is None:
                 print('Unable to retrieve model number...')
