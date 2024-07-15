@@ -30,7 +30,7 @@ def build_output_table_file(outf: str, ic: ICDefinition, elements: list[DataElem
             data_bit_list: list[str] = list(f'{el.data:0{data_width}b}')
 
             for hiz_pin in _bits_iterator(el.z_mask):
-                data_bit_list[int(math.log2(hiz_pin))] = 'Z'
+                data_bit_list[(data_width - 1) - int(math.log2(hiz_pin))] = 'Z'
 
             f.write(f'{address_str}\t{''.join(data_bit_list)}\n')
 
