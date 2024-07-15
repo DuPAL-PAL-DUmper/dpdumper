@@ -100,6 +100,9 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
         print(f'Unable to read data from the IC {ic_definition.name}')
         return
 
+    # No point in keeping the connection open. Close it early, as the dupico will power down the IC when connection closes.
+    ser.close()
+
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
     return
 
