@@ -1,6 +1,7 @@
 """This file contains code to generate output files from data reads"""
 
 import math
+import hashlib
 from typing import Generator
 from dupico_dumper.hl_board_utilities import DataElement
 from dupico_dumper.ic.ic_definition import ICDefinition
@@ -16,11 +17,16 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
 def build_output_binary_file(outf: str, ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> None:
     data_width: int = len(ic.data)
     bytes_per_entry = int(math.ceil(data_width / 8.0))
+    data_arr: bytearray = bytearray()
 
     with open(outf, "wb") as f:
         for el in elements:
             data: int = el.data | el.z_mask if hiz_high else 0
+            data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
+            data_arr.append(*data_b)
             f.write(data.to_bytes(bytes_per_entry, 'big'))
+
+    print(f'Calculated SHA1SUM is {hashlib.sha1(data_arr).hexdigest()}')
 
     return
 
