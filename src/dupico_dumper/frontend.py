@@ -104,6 +104,10 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
     ser.close()
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
+
+    if outfb:
+        OutFileUtilities.build_output_binary_file(outfb, ic_definition, ic_data, hiz_high)
+
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:

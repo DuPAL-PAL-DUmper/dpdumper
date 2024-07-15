@@ -13,6 +13,17 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
         yield b
         n ^= b
 
+def build_output_binary_file(outf: str, ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> None:
+    data_width: int = len(ic.data)
+    bytes_per_entry = int(math.ceil(data_width / 8.0))
+
+    with open(outf, "wb") as f:
+        for el in elements:
+            data: int = el.data | el.z_mask if hiz_high else 0
+            f.write(data.to_bytes(bytes_per_entry, 'big'))
+
+    return
+
 def build_output_table_file(outf: str, ic: ICDefinition, elements: list[DataElement]) -> None:
     data_width: int = len(ic.data)
     address_width: int = len(ic.address)
