@@ -21,4 +21,4 @@ class DumperUtilities:
         else:
             print('Available serial ports:')
             for port in port_list:
-                print(f'\t{port.device} - {port.description}')        
+                print(f'\t{port.device} - {port.description}')      

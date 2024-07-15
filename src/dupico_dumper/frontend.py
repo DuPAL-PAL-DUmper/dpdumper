@@ -14,6 +14,7 @@ from dupico_dumper.ll_board_utilities import LLBoardUtilities
 from dupico_dumper.hl_board_utilities import HLBoardUtilities, DataElement
 from dupico_dumper.ic.ic_loader import ICLoader
 from dupico_dumper.ic.ic_definition import ICDefinition
+import dupico_dumper.outfile_utilities as OutFileUtilities
 
 MIN_SUPPORTED_MODEL: int = 3
 
@@ -99,6 +100,7 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
         print(f'Unable to read data from the IC {ic_definition.name}')
         return
 
+    OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
