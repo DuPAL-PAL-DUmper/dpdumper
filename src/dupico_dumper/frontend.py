@@ -104,9 +104,12 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
     ser.close()
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
+    data_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
+
+    print(f'Read data has SHA1SUM {sha1sum}')
 
     if outfb:
-        OutFileUtilities.build_output_binary_file(outfb, ic_definition, ic_data, hiz_high)
+        OutFileUtilities.build_output_binary_file(outfb, data_array)
 
     return
 

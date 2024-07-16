@@ -14,21 +14,31 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
         yield b
         n ^= b
 
-def build_output_binary_file(outf: str, ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> None:
+def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, str]:
+    """Builds a binary array out of data read from the IC, and returns it plus the SHA1SUM of the data
+
+    Args:
+        ic (ICDefinition): Definition of the IC that was read
+        elements (list[DataElement]): Array of the reads, in addressing order, containing both data and Hi-Z info
+        hiz_high (bool, optional): True if the Hi-Z pins will be represented as 1 in the binary out. Defaults to False.
+
+    Returns:
+        tuple[bytearray, str]: Tuple containing the byte array and the sha1 sum for it
+    """
     data_width: int = len(ic.data)
     bytes_per_entry = int(math.ceil(data_width / 8.0))
     data_arr: bytearray = bytearray()
 
+    for el in elements:
+        data: int = el.data | (el.z_mask if hiz_high else 0)
+        data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
+        data_arr.append(*data_b)
+
+    return (data_arr, hashlib.sha1(data_arr).hexdigest())  
+
+def build_output_binary_file(outf: str, data: bytearray) -> None:
     with open(outf, "wb") as f:
-        for el in elements:
-            data: int = el.data | (el.z_mask if hiz_high else 0)
-            data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
-            data_arr.append(*data_b)
-            f.write(data.to_bytes(bytes_per_entry, 'big'))
-
-    print(f'Calculated SHA1SUM is {hashlib.sha1(data_arr).hexdigest()}')
-
-    return
+        f.write(data)
 
 def build_output_table_file(outf: str, ic: ICDefinition, elements: list[DataElement]) -> None:
     data_width: int = len(ic.data)
