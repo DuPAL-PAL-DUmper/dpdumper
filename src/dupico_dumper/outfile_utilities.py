@@ -21,7 +21,7 @@ def build_output_binary_file(outf: str, ic: ICDefinition, elements: list[DataEle
 
     with open(outf, "wb") as f:
         for el in elements:
-            data: int = el.data | el.z_mask if hiz_high else 0
+            data: int = el.data | (el.z_mask if hiz_high else 0)
             data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
             data_arr.append(*data_b)
             f.write(data.to_bytes(bytes_per_entry, 'big'))
