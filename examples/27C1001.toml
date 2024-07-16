@@ -1,0 +1,19 @@
+# Example of a TOML definition for a 27C2001
+
+name = "27C1001"
+
+type = "ROM"
+
+[pinout]
+# The address array defines the association of every address pin (starting with A0 and increasing) with the pin in the ZIF socket
+address = [12, 11, 10, 9, 8, 7, 6, 5, 37, 36, 33, 35, 4, 38, 39, 3, 2]
+# Same as above, data starts at D0, and defines the mapping of the data lines to the ZIF42 socket
+data = [13, 14, 15, 27, 28, 29, 30, 31]
+# All the pins that must be pulled high to enable this IC
+H_enable = [1] # The Vpp pin, we pull it to 5V
+# All the pins that must be pulled low to enable this IC
+L_enable = [34, 32] # /G and /E
+# All the pins that must be pulled high to write to this IC (even though we don't support EPROM programming, we need to disable writing mode when reading)
+H_write = [] # We have none
+# All the pins that must be pulled low to enable writing
+L_write = [41] # /P line
