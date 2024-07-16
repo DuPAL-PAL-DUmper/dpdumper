@@ -1,8 +1,13 @@
 """This module contains miscellaneous utilities for the dumper"""
 
-from typing import final
+from typing import Iterable, Tuple, TypeVar, final
 
 from serial.tools.list_ports import comports
+
+T = TypeVar('T')
+def grouped_iterator(iterable: Iterable[T], n: int) -> Iterable[Tuple[T, ...]]:
+    return zip(*[iter(iterable)]*n)
+
 
 @final
 class DumperUtilities:

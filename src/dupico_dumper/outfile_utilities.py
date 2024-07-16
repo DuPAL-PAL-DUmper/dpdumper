@@ -5,6 +5,7 @@ import hashlib
 from typing import Generator
 from dupico_dumper.hl_board_utilities import DataElement
 from dupico_dumper.ic.ic_definition import ICDefinition
+from dupico_dumper.dumper_utilities import grouped_iterator
 
 # See https://stackoverflow.com/questions/8898807/pythonic-way-to-iterate-over-bits-of-integer
 # and https://lemire.me/blog/2018/02/21/iterating-over-set-bits-quickly/
@@ -13,6 +14,20 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
         b: int = n & (~n + 1)
         yield b
         n ^= b
+
+def build_data_list_from_file(inf: str, ic: ICDefinition) -> list[int]:
+    data_list: list[int] = []
+    in_content: bytes
+    with open(inf, 'rb') as f:
+        in_content = f.read()
+
+    data_width: int = len(ic.data)
+    bytes_per_entry = int(math.ceil(data_width / 8.0))
+
+    for block in grouped_iterator(in_content, bytes_per_entry):
+        data_list.append(int.from_bytes(block, byteorder='big', signed=False))
+
+    return data_list
 
 def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, str]:
     """Builds a binary array out of data read from the IC, and returns it plus the SHA1SUM of the data
@@ -37,7 +52,7 @@ def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: 
     return (data_arr, hashlib.sha1(data_arr).hexdigest())  
 
 def build_output_binary_file(outf: str, data: bytearray) -> None:
-    with open(outf, "wb") as f:
+    with open(outf, 'wb') as f:
         f.write(data)
 
 def build_output_table_file(outf: str, ic: ICDefinition, elements: list[DataElement]) -> None:

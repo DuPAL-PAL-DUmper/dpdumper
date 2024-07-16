@@ -114,8 +114,9 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
-    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)    
-    return
+    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
+    data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
+    HLBoardUtilities.write_ic(ser, ic_definition, data_list)
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
