@@ -12,7 +12,7 @@ from dupico_dumper.ll_board_utilities import LLBoardUtilities
 from dupico_dumper.dumper_utilities import grouped_iterator
 
 def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible_by: int = 1) -> Generator[int, None, None]:
-    addr_combs: int = 1 << (len(ic.address) - 1) # Calculate the number of addresses that this IC supports
+    addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
     data_on_mapped: int = ICUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
     act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
     wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
@@ -54,7 +54,7 @@ class HLBoardUtilities:
     @classmethod
     def read_ic(cls, ser: serial.Serial, ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
         read_data: list[DataElement] = []
-        addr_combs: int = 1 << (len(ic.address) - 1) # Calculate the number of addresses that this IC supports
+        addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         wr_responses: list[int] = []
         response: str | None = None
         block_size: int = 8
@@ -101,7 +101,7 @@ class HLBoardUtilities:
     @staticmethod
     def write_ic(ser: serial.Serial, ic: ICDefinition, data: list[int]) -> None:
         data_width: int = int(math.ceil(len(ic.data) / 8.0))
-        addr_combs: int = 1 << (len(ic.address) - 1) # Calculate the number of addresses that this IC supports
+        addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
 
         # Check that we have enough data (or not too much) to write
         if addr_combs != len(data):
