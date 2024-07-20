@@ -2,6 +2,7 @@
 
 import argparse
 import traceback
+import logging
 
 import serial
 
@@ -17,6 +18,8 @@ from dupico_dumper.ic.ic_definition import ICDefinition
 import dupico_dumper.outfile_utilities as OutFileUtilities
 
 MIN_SUPPORTED_MODEL: int = 3
+
+_LOGGER: logging.Logger
 
 class Subcommands(Enum):
     TEST = 'test'
@@ -120,6 +123,15 @@ def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
+
+    # Prepare the logger
+    debug_level: int = logging.NOTSET
+    if args.verbose > 1:
+        debug_level = logging.DEBUG
+    elif args.verbose > 0:
+        debug_level = logging.INFO
+    logging.basicConfig(level=debug_level)
+    _LOGGER = logging.getLogger(__name__)
 
     if not args.port:
         DumperUtilities.print_serial_ports()      
