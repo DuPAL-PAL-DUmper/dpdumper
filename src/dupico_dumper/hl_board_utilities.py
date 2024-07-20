@@ -4,12 +4,16 @@ from typing import Generator, final, NamedTuple
 
 import serial
 import math
+import logging
+
 from dupico_dumper.ic.ic_definition import ICDefinition
 from dupico_dumper.board_commands import BoardCommands
 from dupico_dumper.ic.ic_utilities import ICUtilities
 from dupico_dumper.command_structures import CommandCode
 from dupico_dumper.ll_board_utilities import LLBoardUtilities
 from dupico_dumper.dumper_utilities import grouped_iterator
+
+_LOGGER = logging.getLogger(__name__)
 
 def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible_by: int = 1) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
@@ -58,6 +62,8 @@ class HLBoardUtilities:
         wr_responses: list[int] = []
         response: str | None = None
         block_size: int = 8
+        
+        _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
         try:
             BoardCommands.write_pins(ser, 0)
@@ -90,7 +96,7 @@ class HLBoardUtilities:
                 for pulled_low in wr_responses:
                     read_data.append(DataElement(data=ICUtilities.map_pins_to_value(ic.data, pulled_low)))
         except Exception as exc:
-            print(exc)
+            _LOGGER.critical(exc)
         finally:
             print('') # Avoid writing again on the 'Testing block' string
             BoardCommands.set_power(ser, False)
@@ -102,6 +108,7 @@ class HLBoardUtilities:
     def write_ic(ser: serial.Serial, ic: ICDefinition, data: list[int]) -> None:
         data_width: int = int(math.ceil(len(ic.data) / 8.0))
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
+        _LOGGER.debug(f'write_ic command with definition {ic.name}, IC has {addr_combs} addresses and data width {data_width} bits.')
 
         # Check that we have enough data (or not too much) to write
         if addr_combs != len(data):
@@ -120,7 +127,7 @@ class HLBoardUtilities:
             BoardCommands.set_power(ser, True)
 
             for i in range(0, addr_combs):
-                print(f'Writing address {i} with data {data[i]:0{data_width*2}X}')
+                print(f'Writing addr {i} with data {data[i]:0{data_width*2}X}'.ljust(80, ' '), end='\r')
                 address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
                 data_mapped: int = ICUtilities.map_value_to_pins(ic.data, data[i])
 
@@ -131,6 +138,7 @@ class HLBoardUtilities:
                 # Disable writing before switching to the next address
                 BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
         finally:
+            print('')
             BoardCommands.set_power(ser, False)
 
 

@@ -96,11 +96,13 @@ def test_command(ser: serial.Serial) -> None:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
 def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False) -> None:
+    _LOGGER.debug(f'Read command with definition {deff}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
+
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
     ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, ic_definition, check_hiz)
 
     if ic_data is None:
-        print(f'Unable to read data from the IC {ic_definition.name}')
+        _LOGGER.critical(f'Unable to read data from the IC {ic_definition.name}')
         return
 
     # No point in keeping the connection open. Close it early, as the dupico will power down the IC when connection closes.
@@ -117,6 +119,7 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
     return
 
 def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
+    _LOGGER.debug(f'Write command with definition {deff} and input file {inf}')
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
     data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
     HLBoardUtilities.write_ic(ser, ic_definition, data_list)
@@ -131,6 +134,7 @@ def cli() -> int:
     elif args.verbose > 0:
         debug_level = logging.INFO
     logging.basicConfig(level=debug_level)
+    
     _LOGGER = logging.getLogger(__name__)
 
     if not args.port:
@@ -140,6 +144,7 @@ def cli() -> int:
         ser_port: serial.Serial | None = None
 
         try:
+            _LOGGER.debug(f'Trying to open serial port {args.filename}')
             ser_port = serial.Serial(port = args.port,
                                      baudrate=args.baudrate,
                                      bytesize = 8,
@@ -148,19 +153,19 @@ def cli() -> int:
                                      timeout = 5.0)
 
             if not LLBoardUtilities.check_connection_string(ser_port):
-                print('Serial port connected, but the board did not respond in time.')
+                _LOGGER.critical('Serial port connected, but the board did not respond in time.')
                 return -1
             
-            print(f'Board connected @{args.port}, speed:{args.baudrate} ...')
+            _LOGGER.info(f'Board connected @{args.port}, speed:{args.baudrate} ...')
             model: int | None = BoardCommands.get_model(ser_port)
             if model is None:
-                print('Unable to retrieve model number...')
+                _LOGGER.critical('Unable to retrieve model number...')
                 return -1
             elif model < MIN_SUPPORTED_MODEL:
-                print(f'Model {model} is not supported.')
+                _LOGGER.critical(f'Model {model} is not supported.')
                 return -1
-            
-            print(f'Model {model} detected!')
+            else:
+                _LOGGER.info(f'Model {model} detected!')
 
             match args.subcommand:
                 case Subcommands.TEST.value:
@@ -173,19 +178,17 @@ def cli() -> int:
                                  args.check_hiz if args.check_hiz else False,
                                  args.hiz_high if args.hiz_high else False)
                 case _:
-                    print(f'Unsupported command {args.subcommand}')
+                    _LOGGER.critical(f'Unsupported command {args.subcommand}')
 
 
         except Exception as ex:
-            if args.verbose:
-                print(traceback.format_exc())
-            else:
-                print(ex)
+            _LOGGER.critical(traceback.format_exc())
             return -1
 
         finally:
             if ser_port and not ser_port.closed:
+                _LOGGER.debug('Closing the serial port.')
                 ser_port.close()
 
-        print('Bye bye!')
+        _LOGGER.info('Bye bye!')
         return 1 
