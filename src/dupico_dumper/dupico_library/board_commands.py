@@ -4,8 +4,8 @@ from typing import final
 
 import serial
 
-from dupico_dumper.ll_board_utilities import LLBoardUtilities
-from dupico_dumper.command_structures import CommandCode
+from dupico_dumper.dupico_library.board_utilities import BoardUtilities
+from dupico_dumper.dupico_library.command_structures import CommandCode
 
 @final
 class BoardCommands:
@@ -19,7 +19,7 @@ class BoardCommands:
         Returns:
             int | None: Return the model number, or None if the response cannot be read correctly
         """        
-        res: str | None = LLBoardUtilities.send_command(ser, CommandCode.MODEL)
+        res: str | None = BoardUtilities.send_command(ser, CommandCode.MODEL)
 
         if res and len(res) >= 3 and res[0] == CommandCode.MODEL.value:
             return int(res[2:])
@@ -36,7 +36,7 @@ class BoardCommands:
         Returns:
             bool | None: True if test passed correctly, False otherwise
         """        
-        res: str | None = LLBoardUtilities.send_command(ser, CommandCode.TEST)
+        res: str | None = BoardUtilities.send_command(ser, CommandCode.TEST)
 
         if res and len(res) == 3 and res[0] == CommandCode.TEST.value:
             return int(res[2:]) == 1
@@ -54,7 +54,7 @@ class BoardCommands:
         Returns:
             bool | None: True if power was applied, False otherwise, None in case we did not read the response correctly
         """        
-        res: str | None = LLBoardUtilities.send_command(ser, CommandCode.POWER, ['1' if state else '0'])
+        res: str | None = BoardUtilities.send_command(ser, CommandCode.POWER, ['1' if state else '0'])
 
         if res and len(res) == 3 and res[0] == CommandCode.POWER.value:
             return int(res[2:]) == 1
@@ -73,7 +73,7 @@ class BoardCommands:
             int | None: The value we read back from the pins, or None in case of parsing issues
         """        
         # Format the parameter as a 16 chars hex string
-        res: str | None = LLBoardUtilities.send_command(ser, CommandCode.WRITE, [f'{pins:0{16}X}'])
+        res: str | None = BoardUtilities.send_command(ser, CommandCode.WRITE, [f'{pins:0{16}X}'])
 
         if res and len(res) == 18 and res[0] == CommandCode.WRITE.value:
             return int(res[2:], 16)
@@ -90,7 +90,7 @@ class BoardCommands:
         Returns:
             int | None: The value we read back from the pins, or None in case of parsing issues
         """        
-        res: str | None = LLBoardUtilities.send_command(ser, CommandCode.READ)
+        res: str | None = BoardUtilities.send_command(ser, CommandCode.READ)
 
         if res and len(res) == 18 and res[0] == CommandCode.READ.value:
             return int(res[2:], 16)

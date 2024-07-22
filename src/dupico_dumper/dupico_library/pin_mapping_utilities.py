@@ -1,9 +1,9 @@
-"""This file contains utility code to handle the IC definitions"""
+"""This file contains utility code to handle pin to command mapping"""
 
 from typing import final, Dict
 
 @final
-class ICUtilities:
+class PinMappingUtilities:
     # The following map is used to associate a pin number (e.g. pin 1 or 10) on the socket
     # with the corresponding bit index used to access said pin by the dupico
     PIN_NUMBER_TO_INDEX_MAP: Dict[int, int] = {

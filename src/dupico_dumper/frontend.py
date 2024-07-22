@@ -10,8 +10,8 @@ from enum import Enum
 
 from dupico_dumper import __name__, __version__
 from dupico_dumper.dumper_utilities import DumperUtilities
-from dupico_dumper.board_commands import BoardCommands
-from dupico_dumper.ll_board_utilities import LLBoardUtilities
+from dupico_dumper.dupico_library.board_commands import BoardCommands
+from dupico_dumper.dupico_library.board_utilities import BoardUtilities
 from dupico_dumper.hl_board_utilities import HLBoardUtilities, DataElement
 from dupico_dumper.ic.ic_loader import ICLoader
 from dupico_dumper.ic.ic_definition import ICDefinition
@@ -150,7 +150,7 @@ def cli() -> int:
                                      parity = 'N',
                                      timeout = 5.0)
 
-            if not LLBoardUtilities.check_connection_string(ser_port):
+            if not BoardUtilities.check_connection_string(ser_port):
                 _LOGGER.critical('Serial port connected, but the board did not respond in time.')
                 return -1
             

@@ -4,10 +4,10 @@ from typing import final
 
 import serial
 
-from dupico_dumper.command_structures import CommandCode, CommandTokens
+from dupico_dumper.dupico_library.command_structures import CommandCode, CommandTokens
 
 @final
-class LLBoardUtilities:
+class BoardUtilities:
     """
     This class contains basic utilities for board access.
     """

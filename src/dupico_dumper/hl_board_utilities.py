@@ -7,22 +7,22 @@ import math
 import logging
 
 from dupico_dumper.ic.ic_definition import ICDefinition
-from dupico_dumper.board_commands import BoardCommands
-from dupico_dumper.ic.ic_utilities import ICUtilities
-from dupico_dumper.command_structures import CommandCode
-from dupico_dumper.ll_board_utilities import LLBoardUtilities
+from dupico_dumper.dupico_library.board_commands import BoardCommands
+from dupico_dumper.dupico_library.pin_mapping_utilities import PinMappingUtilities
+from dupico_dumper.dupico_library.command_structures import CommandCode
+from dupico_dumper.dupico_library.board_utilities import BoardUtilities
 from dupico_dumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)
 
 def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible_by: int = 1) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
-    data_on_mapped: int = ICUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
-    act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
-    wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
+    data_on_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
+    act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
+    wr_l_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
 
     for i in range(0, addr_combs):
-        address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
+        address_mapped: int = PinMappingUtilities.map_value_to_pins(ic.address, i)
 
         # We will write the following, in sequence, and check their outputs for differences
         # If there are differences on the data pins, it means the IC has data outputs in high-impedance state
@@ -69,9 +69,9 @@ class HLBoardUtilities:
             BoardCommands.write_pins(ser, 0)
             BoardCommands.set_power(ser, True)
                 
-            data_on_mapped: int = ICUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
-            act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
-            wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
+            data_on_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
+            act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
+            wr_l_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
 
             tot_blocks: int = math.ceil(addr_combs / block_size)
             tot_blocks = tot_blocks if not check_hiz else tot_blocks * 2
@@ -80,10 +80,10 @@ class HLBoardUtilities:
             
             for i, pin_map in enumerate(grouped_iterator(pin_map_gen, block_size)):
                 print(f'Testing block {i+1}/{int(tot_blocks)}'.ljust(80, ' '), end='\r')
-                ser.write(LLBoardUtilities.build_command(CommandCode.EXTENDED_WRITE, [f'{entry:0{16}X}' for entry in pin_map]))
+                ser.write(BoardUtilities.build_command(CommandCode.EXTENDED_WRITE, [f'{entry:0{16}X}' for entry in pin_map]))
 
                 for _ in range(0, 8):
-                    response = LLBoardUtilities.read_response_string(ser)
+                    response = BoardUtilities.read_response_string(ser)
                     if response is None or len(response) != 18 or response[0] != CommandCode.WRITE.value: # Something went wrong...
                         return None
                     wr_responses.append(int(response[2:], 16))
@@ -91,10 +91,10 @@ class HLBoardUtilities:
             if check_hiz:
                 for pulled_low, pulled_up in grouped_iterator(wr_responses, 2):
                     hiz_pins: int = pulled_low ^ pulled_up
-                    read_data.append(DataElement(data=ICUtilities.map_pins_to_value(ic.data, pulled_low), z_mask=ICUtilities.map_pins_to_value(ic.data, hiz_pins)))
+                    read_data.append(DataElement(data=PinMappingUtilities.map_pins_to_value(ic.data, pulled_low), z_mask=PinMappingUtilities.map_pins_to_value(ic.data, hiz_pins)))
             else:
                 for pulled_low in wr_responses:
-                    read_data.append(DataElement(data=ICUtilities.map_pins_to_value(ic.data, pulled_low)))
+                    read_data.append(DataElement(data=PinMappingUtilities.map_pins_to_value(ic.data, pulled_low)))
         except Exception as exc:
             _LOGGER.critical(exc)
         finally:
@@ -114,13 +114,13 @@ class HLBoardUtilities:
         if addr_combs != len(data):
             raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
 
-        act_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
+        act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
 
         # These are to disable writing
-        wr_l_mapped: int = ICUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF)
+        wr_l_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF)
 
         # These are to enable writing
-        wr_h_mapped: int = ICUtilities.map_value_to_pins(ic.act_h_write, 0xFFFFFFFFFFFFFFFF)
+        wr_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_write, 0xFFFFFFFFFFFFFFFF)
 
         try:
             BoardCommands.write_pins(ser, 0)
@@ -128,8 +128,8 @@ class HLBoardUtilities:
 
             for i in range(0, addr_combs):
                 print(f'Writing addr {i} with data {data[i]:0{data_width*2}X}'.ljust(80, ' '), end='\r')
-                address_mapped: int = ICUtilities.map_value_to_pins(ic.address, i)
-                data_mapped: int = ICUtilities.map_value_to_pins(ic.data, data[i])
+                address_mapped: int = PinMappingUtilities.map_value_to_pins(ic.address, i)
+                data_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, data[i])
 
                 # Set data and address, but with writing disabled
                 BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
