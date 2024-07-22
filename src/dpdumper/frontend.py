@@ -130,7 +130,7 @@ def cli() -> int:
     args = _build_argsparser().parse_args()
 
     # Prepare the logger
-    debug_level: int = logging.NOTSET
+    debug_level: int = logging.ERROR
     if args.verbose > 1:
         debug_level = logging.DEBUG
     elif args.verbose > 0:
