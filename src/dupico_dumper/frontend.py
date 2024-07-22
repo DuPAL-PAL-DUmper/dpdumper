@@ -188,5 +188,5 @@ def cli() -> int:
                 _LOGGER.debug('Closing the serial port.')
                 ser_port.close()
 
-        _LOGGER.info('Bye bye!')
+        _LOGGER.info('Quitting.')
         return 1 
