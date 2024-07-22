@@ -1,7 +1,6 @@
 # Example of a TOML definition for a 27C2001
 
 name = "27C1001"
-
 type = "ROM"
 
 [pinout]
@@ -17,3 +16,6 @@ L_enable = [34, 32] # /G and /E
 H_write = [] # We have none
 # All the pins that must be pulled low to enable writing
 L_write = [41] # /P line
+
+[requirements]
+hardware = 3

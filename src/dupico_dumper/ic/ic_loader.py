@@ -17,11 +17,19 @@ class ICLoader:
     _KEY_PINOUT_L_ENABLE: str = 'L_enable'
     _KEY_PINOUT_H_WRITE: str = 'H_write'
     _KEY_PINOUT_L_WRITE: str = 'L_write'
+    _KEY_REQUIREMENTS: str = 'requirements'
+    _KEY_REQUIREMENTS_HARDWARE: str = 'hardware'
 
     @classmethod
     def extract_definition_from_file(cls, filepath: str) -> ICDefinition:
         with open(filepath, "rb") as f:
             toml_data: dict[str, Any] = tomllib.load(f)
+
+            hw_req: str | None = toml_data[cls._KEY_REQUIREMENTS][cls._KEY_REQUIREMENTS_HARDWARE]
+
+            if hw_req is None or hw_req != 3: # Ideally we should provide a path to remap old hardware pinouts to new hardware revisions
+                raise ValueError('Hardware revision not supported')
+
             type: ICType = ICType(toml_data[cls._KEY_TYPE])
             return ICDefinition(name=toml_data[cls._KEY_NAME],
                                 type=type,

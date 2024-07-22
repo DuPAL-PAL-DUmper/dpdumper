@@ -17,3 +17,6 @@ L_enable = [38, 36] # /G and /E
 H_write = [] # We have none
 # All the pins that must be pulled low to enable writing
 L_write = []
+
+[requirements]
+hardware = 3
