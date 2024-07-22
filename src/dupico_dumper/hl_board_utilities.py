@@ -6,11 +6,12 @@ import serial
 import math
 import logging
 
+from dupicolib.board_commands import BoardCommands
+from dupicolib.pin_mapping_utilities import PinMappingUtilities
+from dupicolib.command_structures import CommandCode
+from dupicolib.board_utilities import BoardUtilities
+
 from dupico_dumper.ic.ic_definition import ICDefinition
-from dupico_dumper.dupico_library.board_commands import BoardCommands
-from dupico_dumper.dupico_library.pin_mapping_utilities import PinMappingUtilities
-from dupico_dumper.dupico_library.command_structures import CommandCode
-from dupico_dumper.dupico_library.board_utilities import BoardUtilities
 from dupico_dumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)

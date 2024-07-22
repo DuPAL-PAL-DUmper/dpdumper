@@ -8,13 +8,15 @@ import serial
 
 from enum import Enum
 
+from dupicolib.board_commands import BoardCommands
+from dupicolib.board_utilities import BoardUtilities
+
 from dupico_dumper import __name__, __version__
 from dupico_dumper.dumper_utilities import DumperUtilities
-from dupico_dumper.dupico_library.board_commands import BoardCommands
-from dupico_dumper.dupico_library.board_utilities import BoardUtilities
 from dupico_dumper.hl_board_utilities import HLBoardUtilities, DataElement
 from dupico_dumper.ic.ic_loader import ICLoader
 from dupico_dumper.ic.ic_definition import ICDefinition
+
 import dupico_dumper.outfile_utilities as OutFileUtilities
 
 MIN_SUPPORTED_MODEL: int = 3

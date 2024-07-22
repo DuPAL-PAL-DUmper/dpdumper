@@ -2,7 +2,9 @@
 
 import math
 import hashlib
+
 from typing import Generator
+
 from dupico_dumper.hl_board_utilities import DataElement
 from dupico_dumper.ic.ic_definition import ICDefinition
 from dupico_dumper.dumper_utilities import grouped_iterator

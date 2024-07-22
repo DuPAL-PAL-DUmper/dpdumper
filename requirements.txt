@@ -1,3 +1,4 @@
-pyserial==3.5
+pyserial>=3.5
 setuptools==70.3.0
 pytest==8.2.2
+dupicolib>=0.1.0
