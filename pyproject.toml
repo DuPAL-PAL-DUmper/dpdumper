@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-wdcloader = 'wdcloader.frontend:cli'
+dupico_dumper = 'dupico_dumper.frontend:cli'
 
 [project.urls]
 repository = "https://github.com/hkzlab/dupico_dumper"
