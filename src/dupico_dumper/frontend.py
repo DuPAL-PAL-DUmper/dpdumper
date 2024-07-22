@@ -19,7 +19,7 @@ import dupico_dumper.outfile_utilities as OutFileUtilities
 
 MIN_SUPPORTED_MODEL: int = 3
 
-_LOGGER: logging.Logger
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 class Subcommands(Enum):
     TEST = 'test'
@@ -135,8 +135,6 @@ def cli() -> int:
         debug_level = logging.INFO
     logging.basicConfig(level=debug_level)
     
-    _LOGGER = logging.getLogger(__name__)
-
     if not args.port:
         DumperUtilities.print_serial_ports()      
         return 1
@@ -144,7 +142,7 @@ def cli() -> int:
         ser_port: serial.Serial | None = None
 
         try:
-            _LOGGER.debug(f'Trying to open serial port {args.filename}')
+            _LOGGER.debug(f'Trying to open serial port {args.port}')
             ser_port = serial.Serial(port = args.port,
                                      baudrate=args.baudrate,
                                      bytesize = 8,

@@ -1,0 +1,22 @@
+# Example of a TOML definition for a 2532
+
+name = "2532"
+
+type = "ROM"
+
+[pinout]
+# The address array defines the association of every address pin (starting with A0 and increasing) with the pin in the ZIF socket
+address = [8, 7, 6, 5, 4, 3, 2, 1, 41, 40, 37, 36]
+# Same as above, data starts at D0, and defines the mapping of the data lines to the ZIF42 socket
+data = [9, 10, 11, 31, 32, 33, 34, 35]
+# All the pins that must be pulled high to enable this IC
+H_enable = [39]
+# All the pins that must be pulled low to enable this IC
+L_enable = [38] # PD
+# All the pins that must be pulled high to write to this IC (even though we don't support EPROM programming, we need to disable writing mode when reading)
+H_write = [] # We have none
+# All the pins that must be pulled low to enable writing
+L_write = []
+
+[requirements]
+hardware = 3
