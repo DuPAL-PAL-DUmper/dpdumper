@@ -2,7 +2,7 @@
 
 import importlib.metadata
 
-__name__: str = 'dupico_dumper'
+__name__: str = 'dpdumper'
 __version__: str = '0.0.0'
 
 try:

@@ -11,8 +11,8 @@ from dupicolib.pin_mapping_utilities import PinMappingUtilities
 from dupicolib.command_structures import CommandCode
 from dupicolib.board_utilities import BoardUtilities
 
-from dupico_dumper.ic.ic_definition import ICDefinition
-from dupico_dumper.dumper_utilities import grouped_iterator
+from dpdumper.ic.ic_definition import ICDefinition
+from dpdumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)
 

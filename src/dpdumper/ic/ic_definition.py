@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from dupico_dumper.ic.ic_types import ICType
+from dpdumper.ic.ic_types import ICType
 
 @dataclass
 class ICDefinition:

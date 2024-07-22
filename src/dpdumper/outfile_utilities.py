@@ -5,9 +5,9 @@ import hashlib
 
 from typing import Generator
 
-from dupico_dumper.hl_board_utilities import DataElement
-from dupico_dumper.ic.ic_definition import ICDefinition
-from dupico_dumper.dumper_utilities import grouped_iterator
+from dpdumper.hl_board_utilities import DataElement
+from dpdumper.ic.ic_definition import ICDefinition
+from dpdumper.dumper_utilities import grouped_iterator
 
 # See https://stackoverflow.com/questions/8898807/pythonic-way-to-iterate-over-bits-of-integer
 # and https://lemire.me/blog/2018/02/21/iterating-over-set-bits-quickly/

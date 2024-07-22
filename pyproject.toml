@@ -3,8 +3,8 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dupico_dumper"
-version = "0.0.1"
+name = "dpdumper"
+version = "0.0.2"
 description = "Tool to use the dupico as a dumping device"
 authors = [
    { name = "Fabio Battaglia", email = "hkzlabnet@gmail.com" }
@@ -18,11 +18,14 @@ classifiers = [
 requires-python = ">=3.12"
 dependencies = [
     "pyserial ~= 3.5",
-    "dupicolib" ~= 0.1.0"
+    "dupicolib ~= 0.1.0"
 ]
 
 [project.scripts]
-dupico_dumper = 'dupico_dumper.frontend:cli'
+dpdumper = 'dpdumper.frontend:cli'
+
+[tool.setuptools]
+py-modules = [ "__init__" ]
 
 [project.urls]
 repository = "https://github.com/hkzlab/dupico_dumper"

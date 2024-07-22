@@ -1,8 +1,8 @@
 """This class contains code to extract an IC definition from a properly formatted TOML file"""
 
 from typing import Any, final
-from dupico_dumper.ic.ic_definition import ICDefinition
-from dupico_dumper.ic.ic_types import ICType
+from dpdumper.ic.ic_definition import ICDefinition
+from dpdumper.ic.ic_types import ICType
 
 import tomllib
 
