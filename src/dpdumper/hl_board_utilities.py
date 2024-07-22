@@ -80,7 +80,7 @@ class HLBoardUtilities:
             pin_map_gen = _read_pin_map_generator(ic, check_hiz, block_size)
             
             for i, pin_map in enumerate(grouped_iterator(pin_map_gen, block_size)):
-                print(f'Testing block {i+1}/{int(tot_blocks)}'.ljust(80, ' '), end='\r')
+                print(f'Reading block {i+1}/{int(tot_blocks)}'.ljust(80, ' '), end='\r')
                 ser.write(BoardUtilities.build_command(CommandCode.EXTENDED_WRITE, [f'{entry:0{16}X}' for entry in pin_map]))
 
                 for _ in range(0, 8):
