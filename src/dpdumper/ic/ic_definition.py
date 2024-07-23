@@ -14,3 +14,4 @@ class ICDefinition:
     act_l_enable: list[int]
     act_h_write: list[int]
     act_l_write: list[int]
+    adapter_hi_pins: list[int]

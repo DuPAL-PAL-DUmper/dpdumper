@@ -18,6 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible_by: int = 1) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
+
+    hi_pins_mapped: int = PinMappingUtilities.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
     data_on_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
     act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
     wr_l_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
@@ -27,12 +29,12 @@ def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible
 
         # We will write the following, in sequence, and check their outputs for differences
         # If there are differences on the data pins, it means the IC has data outputs in high-impedance state
-        out_data_l: int = act_h_mapped | wr_l_mapped | address_mapped
+        out_data_l: int = hi_pins_mapped | act_h_mapped | wr_l_mapped | address_mapped
 
         yield out_data_l
 
         if check_hiz:
-            out_data_h: int = data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
+            out_data_h: int = hi_pins_mapped | data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
             yield out_data_h
 
     remainder: int = addr_combs % divisible_by
@@ -67,12 +69,10 @@ class HLBoardUtilities:
         _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
         try:
-            BoardCommands.write_pins(ser, 0)
+            hi_pins_mapped: int = PinMappingUtilities.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
+
+            BoardCommands.write_pins(ser, hi_pins_mapped) # Start with these already enabled
             BoardCommands.set_power(ser, True)
-                
-            data_on_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, 0xFFFFFFFFFFFFFFFF) # Use this to detect if we have data pins in high impedance
-            act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
-            wr_l_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF) # Make sure that we do not try to write anything
 
             tot_blocks: int = math.ceil(addr_combs / block_size)
             tot_blocks = tot_blocks if not check_hiz else tot_blocks * 2
@@ -115,6 +115,9 @@ class HLBoardUtilities:
         if addr_combs != len(data):
             raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
 
+
+        hi_pins_mapped: int = PinMappingUtilities.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
+
         act_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
 
         # These are to disable writing
@@ -124,7 +127,8 @@ class HLBoardUtilities:
         wr_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_write, 0xFFFFFFFFFFFFFFFF)
 
         try:
-            BoardCommands.write_pins(ser, 0)
+            # Start with the pins that must be forced high
+            BoardCommands.write_pins(ser, hi_pins_mapped)
             BoardCommands.set_power(ser, True)
 
             for i in range(0, addr_combs):
@@ -133,14 +137,15 @@ class HLBoardUtilities:
                 data_mapped: int = PinMappingUtilities.map_value_to_pins(ic.data, data[i])
 
                 # Set data and address, but with writing disabled
-                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                BoardCommands.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
                 # Enable writing
-                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
+                BoardCommands.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
                 # Disable writing before switching to the next address
-                BoardCommands.write_pins(ser, address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                BoardCommands.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
         finally:
             print('')
             BoardCommands.set_power(ser, False)
+            BoardCommands.write_pins(ser, 0)
 
 
                 

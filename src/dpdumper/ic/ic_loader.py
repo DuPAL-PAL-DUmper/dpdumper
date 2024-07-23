@@ -17,6 +17,8 @@ class ICLoader:
     _KEY_PINOUT_L_ENABLE: str = 'L_enable'
     _KEY_PINOUT_H_WRITE: str = 'H_write'
     _KEY_PINOUT_L_WRITE: str = 'L_write'
+    _KEY_ADAPTER: str = 'adapter'
+    _KEY_ADAPTER_HI_PINS: str = 'hi_pins'
     _KEY_REQUIREMENTS: str = 'requirements'
     _KEY_REQUIREMENTS_HARDWARE: str = 'hardware'
 
@@ -38,4 +40,5 @@ class ICLoader:
                                 act_h_enable=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_H_ENABLE],
                                 act_l_enable=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_L_ENABLE],
                                 act_h_write=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_H_WRITE],
-                                act_l_write=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_L_WRITE])
+                                act_l_write=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_L_WRITE],
+                                adapter_hi_pins=toml_data[cls._KEY_ADAPTER][cls._KEY_ADAPTER_HI_PINS])

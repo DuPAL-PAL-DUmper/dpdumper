@@ -18,5 +18,11 @@ H_write = [] # We have none
 # All the pins that must be pulled low to enable writing
 L_write = []
 
+[adapter]
+# pins that need to be forced high to read this in the adapter
+hi_pins = []
+# Notes on the adapter necessary to read this IC
+notes = ""
+
 [requirements]
 hardware = 3
