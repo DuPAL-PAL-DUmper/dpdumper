@@ -40,9 +40,9 @@ def _read_pin_map_generator(ic: ICDefinition, check_hiz: bool = False, divisible
     remainder: int = addr_combs % divisible_by
     if remainder > 0:
         for i in range(0, divisible_by - remainder):
-            yield 0
+            yield hi_pins_mapped # Even if we're left with nothing to try, keep the pins that must be forced high as such
             if check_hiz:
-                yield 0
+                yield hi_pins_mapped
 
 
 @final
