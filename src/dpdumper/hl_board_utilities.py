@@ -71,6 +71,8 @@ class HLBoardUtilities:
         try:
             hi_pins_mapped: int = PinMappingUtilities.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
+            _LOGGER.debug(f'This IC requires the following pin mask forced high: {hi_pins_mapped:0{16}X}')
+
             BoardCommands.write_pins(ser, hi_pins_mapped) # Start with these already enabled
             BoardCommands.set_power(ser, True)
 
@@ -125,6 +127,8 @@ class HLBoardUtilities:
 
         # These are to enable writing
         wr_h_mapped: int = PinMappingUtilities.map_value_to_pins(ic.act_h_write, 0xFFFFFFFFFFFFFFFF)
+
+        _LOGGER.debug(f'This IC requires the following pin mask forced high: {hi_pins_mapped:0{16}X}')
 
         try:
             # Start with the pins that must be forced high
