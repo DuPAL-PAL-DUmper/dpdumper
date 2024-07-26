@@ -28,4 +28,4 @@ dpdumper = 'dpdumper.frontend:cli'
 py-modules = [ "__init__" ]
 
 [project.urls]
-repository = "https://github.com/hkzlab/dupico_dumper"
+repository = "https://github.com/hkzlab/dpdumper"
