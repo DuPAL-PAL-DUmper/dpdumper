@@ -83,4 +83,63 @@ This means that pins that are actually Hi-Z will be detected as low, but also th
 ⚠️ Writing is supported only by some ICs and is, as of now, untested.
 
 ## IC Definition format
-**TODO**
+
+The IC definitions must be provided in TOML format and are structured as follows:
+
+### Files sections
+
+#### Root Section
+
+- name: string that contains the name of the device, e.g. `27C16`
+- type: type of the device, the only currently recognized types are `ROM` and `SRAM`, even though only ROMs are tested. `SRAM` is meant for battery backed modules that will be supported in the future
+
+#### Pinout section \[pinout\]
+
+- address: array of integers that define the address pins location on the ZIF42 socket, starting from A0 and going onwards in order. E.g. `[12, 11, 10, 9, 8, 7, 6, 5, 37, 36, 33, 35, 4, 38, 39, 3, 2]`
+- data: array of integers that define the data pins location on the ZIF42 socket, starting from D0 and going onwards
+- H_enable: array of integers that define which pins need to be pulled high to enable this IC
+- L_enable: array of integers that define which pins need to be pulled low to enable this IC. **This is currently unused**, as all pins not required to be pulled high by other parameters are pulled low by default. It might be useful in the future if code that needs to deselect/reselect the IC needs to be written, and thus these pins must be toggled high.
+- H_write: array of integers that define which pins need to be pulled high to enable write mode on this IC.
+- L_write: array of integers that define which pins need to be pulled low to enable write mode on this IC. This is necessary so write mode can be toggled by pulling these high.
+
+#### Adapter section \[adapter\]
+This section contains configuration for adapters plugged in the ZIF socket, that may use additional pins to toggle some functionality.
+
+- hi_pins: array of integers that will specify a list of pins to keep pulled high when the adapter gets powered up, and keep in this state all the time until power down
+- notes: Human readable string with notes regarding the adapter. Might be used to print messages to the user in the future.
+
+#### Requirements section \[requirements\]
+To future proof for future hardware revisions, this section specifies which version of the adapter is necessary to read the defined IC. For now, only one field is supported.
+
+- hardware: integer specifying the model number that the dpdumper will check before trying to read anything. Currently it's `3`.
+
+### Pin mapping
+The ZIF socket follows the normal pin numbering, but keep in mind that the dupico is meant for a 42 pin socket, the 48 pin footprint is present just for convenience and the bottom 6 pins are all connected to GND and not used in counting the pins.
+
+```
+            __ __
+          1   U  42 <--- +5V
+          2      41
+          3      40
+          4      39
+          5      38  
+          6      37
+          7      36
+          8      35
+          9      34
+         10      33
+         11      32
+         12      31
+         13      30
+         14      29
+         15      28
+         16      27
+         17      26
+         18      25
+         19      24
+         20      23
+GND ---> 21      22
+          x      x \
+          x      x  }- GND for all these pins
+          x______x /
+```
