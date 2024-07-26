@@ -12,7 +12,6 @@ This is a tool to interface your computer with the DuPAL V3 ("dupico") board and
 
 It takes a description of the IC to read in TOML format and outputs a human readable table containing the state of every data pin ('1', '0' or 'Z') for every address combination, and, optionally, a binary file representing the same data (with the option to set pins in Hi-Z state to either 1 or 0).
 
-
 ## Command line
 
 ```
@@ -143,3 +142,7 @@ GND ---> 21      22
           x      x  }- GND for all these pins
           x______x /
 ```
+
+## Requirements
+
+The [dupicolib](https://github.com/DuPAL-PAL-DUmper/dupicolib) library is required for this tool to work.
