@@ -15,3 +15,4 @@ class ICDefinition:
     act_h_write: list[int]
     act_l_write: list[int]
     adapter_hi_pins: list[int]
+    adapter_notes: str | None = None

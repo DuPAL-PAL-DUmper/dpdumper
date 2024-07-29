@@ -19,6 +19,7 @@ class ICLoader:
     _KEY_PINOUT_L_WRITE: str = 'L_write'
     _KEY_ADAPTER: str = 'adapter'
     _KEY_ADAPTER_HI_PINS: str = 'hi_pins'
+    _KEY_ADAPTER_NOTES: str = 'notes'
     _KEY_REQUIREMENTS: str = 'requirements'
     _KEY_REQUIREMENTS_HARDWARE: str = 'hardware'
 
@@ -31,7 +32,7 @@ class ICLoader:
 
             if hw_req is None or hw_req != 3: # Ideally we should provide a path to remap old hardware pinouts to new hardware revisions
                 raise ValueError('Hardware revision not supported')
-
+            
             type: ICType = ICType(toml_data[cls._KEY_TYPE])
             return ICDefinition(name=toml_data[cls._KEY_NAME],
                                 type=type,
@@ -41,4 +42,5 @@ class ICLoader:
                                 act_l_enable=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_L_ENABLE],
                                 act_h_write=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_H_WRITE],
                                 act_l_write=toml_data[cls._KEY_PINOUT][cls._KEY_PINOUT_L_WRITE],
-                                adapter_hi_pins=toml_data[cls._KEY_ADAPTER][cls._KEY_ADAPTER_HI_PINS])
+                                adapter_hi_pins=toml_data[cls._KEY_ADAPTER][cls._KEY_ADAPTER_HI_PINS],
+                                adapter_notes=toml_data[cls._KEY_ADAPTER].get(cls._KEY_ADAPTER_NOTES, None))

@@ -3,6 +3,7 @@
 import argparse
 import traceback
 import logging
+import time
 
 import serial
 
@@ -74,6 +75,10 @@ def _build_argsparser() -> argparse.ArgumentParser:
                              action='store_true',
                              default=False,
                              help='The binary output will be saved with hi-z bits set to 1')
+    parser_read.add_argument('--skip_note',
+                             action='store_true',
+                             default=False,
+                             help='If present, skip printing adapter notes and associated delays')
 
     parser_write = subparsers.add_parser(Subcommands.WRITE.value, help='Write the content of a file into a supported (and writable) IC')
     parser_write.add_argument('-d', '--definition',
@@ -85,11 +90,34 @@ def _build_argsparser() -> argparse.ArgumentParser:
                               metavar='input file',
                               help='File with the contents that will be written to the IC',
                               required=True)
+    parser_write.add_argument('--skip_note',
+                             action='store_true',
+                             default=False,
+                             help='If present, skip printing adapter notes and associated delays')
+
 
     return parser
 
+def print_note(note: str, delay: int = 5) -> None:
+    print('-' * 10)
+    print(note.strip())
+    print('-' * 10)
+
+    for i in range(delay, 0, -1):
+        print(f'To cancel, press CTRL-C within {i} seconds'.ljust(80, ' '), end='\r')
+        time.sleep(1)
+    print(' ' * 80, end='\r')
+
 def test_command(ser: serial.Serial) -> None:
-    print('Testing the board, make sure the ZIF socket is empty!')
+    delay: int = 5
+
+    print('Make sure the ZIF socket is empty before starting the test!')
+
+    for i in range(delay, 0, -1):
+        print(f'To cancel, press CTRL-C within {i} seconds'.ljust(80, ' '), end='\r')
+        time.sleep(1)
+    print(' ' * 80, end='\r')
+
     test_result: bool | None = BoardCommands.test_board(ser)
 
     if test_result is None:
@@ -97,10 +125,15 @@ def test_command(ser: serial.Serial) -> None:
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False) -> None:
+def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {deff}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
+    print(f'Reading from IC {ic_definition.name}')
+
+    if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
+        print_note(ic_definition.adapter_notes)
+
     ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, ic_definition, check_hiz)
 
     if ic_data is None:
@@ -120,9 +153,15 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
 
     return
 
-def write_command(ser: serial.Serial, deff: str, inf: str) -> None:
+def write_command(ser: serial.Serial, deff: str, inf: str, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {deff} and input file {inf}')
+
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
+    print(f'Writing to IC {ic_definition.name}')
+
+    if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
+        print_note(ic_definition.adapter_notes)
+
     data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
     HLBoardUtilities.write_ic(ser, ic_definition, data_list)
 
@@ -171,12 +210,13 @@ def cli() -> int:
                 case Subcommands.TEST.value:
                     test_command(ser_port)
                 case Subcommands.WRITE.value:
-                    write_command(ser_port, args.definition, args.infile)
+                    write_command(ser_port, args.definition, args.infile, args.skip_note)
                 case Subcommands.READ.value:
                     read_command(ser_port, args.definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
-                                 args.check_hiz if args.check_hiz else False,
-                                 args.hiz_high if args.hiz_high else False)
+                                 args.check_hiz,
+                                 args.hiz_high,
+                                 args.skip_note)
                 case _:
                     _LOGGER.critical(f'Unsupported command {args.subcommand}')
 
