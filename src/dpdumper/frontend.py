@@ -10,7 +10,9 @@ import serial
 from enum import Enum
 
 from dupicolib.board_commands import BoardCommands
+from dupicolib.board_command_class_factory import BoardCommandClassFactory
 from dupicolib.board_utilities import BoardUtilities
+from dupicolib.board_fw_version import FwVersionTools, FWVersionDict
 
 from dpdumper import __name__, __version__
 from dpdumper.dumper_utilities import DumperUtilities
@@ -108,7 +110,7 @@ def print_note(note: str, delay: int = 5) -> None:
         time.sleep(1)
     print(' ' * 80, end='\r')
 
-def test_command(ser: serial.Serial) -> None:
+def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
     delay: int = 5
 
     print('Make sure the ZIF socket is empty before starting the test!')
@@ -118,14 +120,14 @@ def test_command(ser: serial.Serial) -> None:
         time.sleep(1)
     print(' ' * 80, end='\r')
 
-    test_result: bool | None = BoardCommands.test_board(ser)
+    test_result: bool | None = cmd_class.test_board(ser)
 
     if test_result is None:
         print('Unable to get a proper response.')
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
+def read_command(ser: serial.Serial, cmd_class: BoardCommands, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {deff}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
@@ -134,7 +136,7 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
-    ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, ic_definition, check_hiz)
+    ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, cmd_class, ic_definition, check_hiz)
 
     if ic_data is None:
         _LOGGER.critical(f'Unable to read data from the IC {ic_definition.name}')
@@ -153,7 +155,7 @@ def read_command(ser: serial.Serial, deff: str, outf: str, outfb: str | None = N
 
     return
 
-def write_command(ser: serial.Serial, deff: str, inf: str, skip_note: bool = False) -> None:
+def write_command(ser: serial.Serial, cmd_class: BoardCommands, deff: str, inf: str, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {deff} and input file {inf}')
 
     ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
@@ -163,7 +165,7 @@ def write_command(ser: serial.Serial, deff: str, inf: str, skip_note: bool = Fal
         print_note(ic_definition.adapter_notes)
 
     data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
-    HLBoardUtilities.write_ic(ser, ic_definition, data_list)
+    HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list)
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
@@ -206,13 +208,25 @@ def cli() -> int:
             else:
                 _LOGGER.info(f'Model {model} detected!')
 
+            fw_version: str | None = BoardCommands.get_version(ser_port)
+            fw_version_dict: FWVersionDict
+            if fw_version is None:
+                _LOGGER.critical('Unable to retrieve firmware version...')
+                return -1
+            else:
+                fw_version_dict = FwVersionTools.parse(fw_version) # Check that the version is formatted correctly
+                _LOGGER.info(f'Firmware version on board is "{fw_version}"')
+
+            # Now we have enough information to obtain the class that handles commands specific for this board
+            command_class: BoardCommands = BoardCommandClassFactory.get_command_class(model, fw_version_dict)
+
             match args.subcommand:
                 case Subcommands.TEST.value:
-                    test_command(ser_port)
+                    test_command(ser_port, command_class)
                 case Subcommands.WRITE.value:
-                    write_command(ser_port, args.definition, args.infile, args.skip_note)
+                    write_command(ser_port, command_class, args.definition, args.infile, args.skip_note)
                 case Subcommands.READ.value:
-                    read_command(ser_port, args.definition, args.outfile,
+                    read_command(ser_port, command_class, args.definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
                                  args.check_hiz,
                                  args.hiz_high,
