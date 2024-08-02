@@ -4,24 +4,28 @@ name = "27C1001"
 type = "ROM"
 
 [pinout]
-# The address array defines the association of every address pin (starting with A0 and increasing) with the pin in the ZIF socket
-address = [12, 11, 10, 9, 8, 7, 6, 5, 37, 36, 33, 35, 4, 38, 39, 3, 2]
+# List all the pins of the IC, from 1 onward, as mapped on the ZIF42 socket of the dupico
+# note that, in this list, 21 is a placeholder for GND, 42 a placeholder for a power source (which could be 5V or different).
+ZIF_map = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 21, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]
+
+# The address array defines the association of every address pin with its number, starting at A0
+address = [12, 11, 10, 9, 8, 7, 6, 5, 27, 26, 23, 25, 4, 28, 29, 3, 2]
 # Same as above, data starts at D0, and defines the mapping of the data lines to the ZIF42 socket
-data = [13, 14, 15, 27, 28, 29, 30, 31]
+data = [13, 14, 15, 17, 18, 19, 20, 21]
 # All the pins that must be pulled high to enable this IC
 H_enable = [1] # The Vpp pin, we pull it to 5V
 # All the pins that must be pulled low to enable this IC
-L_enable = [34, 32] # /G and /E
+L_enable = [24, 22] # /G and /E
 # All the pins that must be pulled high to write to this IC (even though we don't support EPROM programming, we need to disable writing mode when reading)
 H_write = [] # We have none
 # All the pins that must be pulled low to enable writing
-L_write = [41] # /P line
+L_write = [31] # /P line
 
 [adapter]
 # pins that need to be forced high to read this in the adapter
 hi_pins = []
 # Notes on the adapter necessary to read this IC
-notes = ""
+notes = "Insert the IC in the topmost position on the ZIF42, then connect pin 16 of the ZIF42 to pin 21"
 
 [requirements]
 hardware = 3

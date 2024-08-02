@@ -1,6 +1,13 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.1.0] - 2024-08-02
+### Changed
+- Changed the definition format, so that pin mapping is specified on a single entry, and everything else use the normal IC pin numbering
+
+### Fixed
+- Some notes in example TOML files were plain wrong
+
 ## [0.0.3] - 2024-07-29
 ### Changed
 - Depends on dupicolib 0.2.0
