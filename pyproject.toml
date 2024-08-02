@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpdumper"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tool to use the dupico as a dumping device"
 authors = [
    { name = "Fabio Battaglia", email = "hkzlabnet@gmail.com" }

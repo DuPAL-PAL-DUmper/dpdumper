@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.1.1] - 2024-08-02
+### Fixed
+- Actually compare the hw definition required in the TOML files with the current board revision
+
 ## [0.1.0] - 2024-08-02
 ### Changed
 - Changed the definition format, so that pin mapping is specified on a single entry, and everything else use the normal IC pin numbering

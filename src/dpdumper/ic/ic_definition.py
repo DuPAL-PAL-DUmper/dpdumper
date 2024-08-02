@@ -15,6 +15,7 @@ class ICDefinition:
     act_h_write: list[int]
     act_l_write: list[int]
     adapter_hi_pins: list[int]
+    hw_model: int
     adapter_notes: str | None = None
 
     @staticmethod
@@ -37,10 +38,12 @@ class ICDefinition:
                  act_h_write: list[int],
                  act_l_write: list[int],
                  adapter_hi_pins: list[int],
+                 hw_model: int,
                  adapter_notes: str | None = None):
         
         self.name = name
         self.type = type
+        self.hw_model = hw_model
         self.adapter_notes = adapter_notes
         self.adapter_hi_pins = adapter_hi_pins
 

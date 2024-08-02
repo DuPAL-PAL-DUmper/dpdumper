@@ -127,11 +127,8 @@ def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, cmd_class: BoardCommands, deff: str, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
-    _LOGGER.debug(f'Read command with definition {deff}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
-
-    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
-    print(f'Reading from IC {ic_definition.name}')
+def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
+    _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
@@ -155,10 +152,9 @@ def read_command(ser: serial.Serial, cmd_class: BoardCommands, deff: str, outf: 
 
     return
 
-def write_command(ser: serial.Serial, cmd_class: BoardCommands, deff: str, inf: str, skip_note: bool = False) -> None:
-    _LOGGER.debug(f'Write command with definition {deff} and input file {inf}')
+def write_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
+    _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
-    ic_definition: ICDefinition = ICLoader.extract_definition_from_file(deff)
     print(f'Writing to IC {ic_definition.name}')
 
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
@@ -220,13 +216,21 @@ def cli() -> int:
             # Now we have enough information to obtain the class that handles commands specific for this board
             command_class: BoardCommands = BoardCommandClassFactory.get_command_class(model, fw_version_dict)
 
+            # Load and check IC definition requirements
+            ic_definition: ICDefinition | None
+            if args.definition:
+                ic_definition = ICLoader.extract_definition_from_file(args.definition)
+                
+                if ic_definition.hw_model > model:
+                    raise ValueError(f'Current hardware model {model} does not satisfy requirement {ic_definition.hw_model}')
+
             match args.subcommand:
                 case Subcommands.TEST.value:
                     test_command(ser_port, command_class)
                 case Subcommands.WRITE.value:
-                    write_command(ser_port, command_class, args.definition, args.infile, args.skip_note)
+                    write_command(ser_port, command_class, ic_definition, args.infile, args.skip_note)
                 case Subcommands.READ.value:
-                    read_command(ser_port, command_class, args.definition, args.outfile,
+                    read_command(ser_port, command_class, ic_definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
                                  args.check_hiz,
                                  args.hiz_high,
