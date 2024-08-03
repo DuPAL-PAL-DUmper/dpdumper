@@ -217,8 +217,8 @@ def cli() -> int:
             command_class: BoardCommands = BoardCommandClassFactory.get_command_class(model, fw_version_dict)
 
             # Load and check IC definition requirements
-            ic_definition: ICDefinition | None
-            if args.definition:
+            ic_definition: ICDefinition
+            if hasattr(args, 'definition') and args.definition is not None:
                 ic_definition = ICLoader.extract_definition_from_file(args.definition)
                 
                 if ic_definition.hw_model > model:
