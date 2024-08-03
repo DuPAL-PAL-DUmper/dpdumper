@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.1.2] - 2024-08-03
+### Fixed
+- Fix execution in case the --definition parameter is not passed
+
 ## [0.1.1] - 2024-08-02
 ### Fixed
 - Actually compare the hw definition required in the TOML files with the current board revision
