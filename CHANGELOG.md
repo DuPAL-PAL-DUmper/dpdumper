@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.2.0] - 2024-08-04
+### Changed
+- Require dupicolib ~0.3.0
+
 ## [0.1.2] - 2024-08-03
 ### Fixed
 - Fix execution in case the --definition parameter is not passed

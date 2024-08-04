@@ -189,7 +189,7 @@ def cli() -> int:
                                      parity = 'N',
                                      timeout = 5.0)
 
-            if not BoardUtilities.check_connection_string(ser_port):
+            if not BoardUtilities.initialize_connection(ser_port):
                 _LOGGER.critical('Serial port connected, but the board did not respond in time.')
                 return -1
             

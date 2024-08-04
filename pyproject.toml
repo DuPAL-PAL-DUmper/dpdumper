@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpdumper"
-version = "0.1.2"
+version = "0.2.0"
 description = "Tool to use the dupico as a dumping device"
 authors = [
    { name = "Fabio Battaglia", email = "hkzlabnet@gmail.com" }
@@ -18,7 +18,7 @@ classifiers = [
 requires-python = ">=3.12"
 dependencies = [
     "pyserial ~= 3.5",
-    "dupicolib ~= 0.2.0"
+    "dupicolib ~= 0.3.0"
 ]
 
 [project.scripts]
