@@ -88,6 +88,8 @@ class HLBoardUtilities:
                 else:
                     wr_responses.append(wr_addr_response)
 
+            _print_progressBar(tot_combs, tot_combs)
+
             if check_hiz:
                 for pulled_low, pulled_up in grouped_iterator(wr_responses, 2):
                     hiz_pins: int = pulled_low ^ pulled_up
@@ -113,7 +115,6 @@ class HLBoardUtilities:
         # Check that we have enough data (or not too much) to write
         if addr_combs != len(data):
             raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
-
 
         hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
@@ -145,6 +146,8 @@ class HLBoardUtilities:
                 cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
                 # Disable writing before switching to the next address
                 cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+            
+            _print_progressBar(addr_combs, addr_combs)
         finally:
             print('')
             cmd_class.set_power(ser, False)
