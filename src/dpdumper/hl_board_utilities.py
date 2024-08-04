@@ -13,6 +13,16 @@ from dpdumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)
 
+# Taken from https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
+def _print_progressBar (iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 50, fill: str = '█', printEnd: str = '\r'):
+    percent: str = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength: int = int(length * iteration // total)
+    bar: str = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+
 def _read_pin_map_generator(cmd_class: BoardCommands, ic: ICDefinition, check_hiz: bool = False) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
 
@@ -68,7 +78,9 @@ class HLBoardUtilities:
             pin_map_gen = _read_pin_map_generator(cmd_class, ic, check_hiz)
             
             for i, pin_map in enumerate(pin_map_gen):
-                print(f'Reading combination {i+1}/{int(tot_combs)}'.ljust(80, ' '), end='\r')
+                if i % 250 == 0:
+                    _print_progressBar(i, tot_combs)
+
                 wr_addr_response: int | None = cmd_class.write_pins(ser, pin_map)
 
                 if wr_addr_response is None:
@@ -121,7 +133,9 @@ class HLBoardUtilities:
             cmd_class.set_power(ser, True)
 
             for i in range(0, addr_combs):
-                print(f'Writing addr {i} with data {data[i]:0{data_width*2}X}'.ljust(80, ' '), end='\r')
+                if i % 250 == 0:
+                    _print_progressBar(i, addr_combs)
+                
                 address_mapped: int = cmd_class.map_value_to_pins(ic.address, i)
                 data_mapped: int = cmd_class.map_value_to_pins(ic.data, data[i])
 
