@@ -7,6 +7,8 @@ Changelog for the dpdumper utility
 
 ### Added
 - Added progress bar to track read/write completion
+- Added warning when using write mode
+- Added print of IC name when reading
 
 ## [0.1.2] - 2024-08-03
 ### Fixed
