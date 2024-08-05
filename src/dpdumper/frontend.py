@@ -131,6 +131,7 @@ def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
 def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
+    print(f'Reading from IC {ic_definition.name}')
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
@@ -160,6 +161,7 @@ def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: IC
 def write_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
+    print('⚠️ Writing is untested ⚠️\n')
     print(f'Writing to IC {ic_definition.name}')
 
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
