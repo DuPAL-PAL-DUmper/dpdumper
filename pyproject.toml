@@ -25,7 +25,9 @@ dependencies = [
 dpdumper = "dpdumper.frontend:cli"
 
 [tool.setuptools.packages.find]
-where = ["src"]  # list of folders that contain the packages (["."] by default)
+where = ["src", "."]  # list of folders that contain the packages (["."] by default)
+include = ["dpdumper*", "resources*"]
+exclude = ["test*"]
 
 [project.urls]
 repository = "https://github.com/DuPAL-PAL-DUmper/dpdumper"
