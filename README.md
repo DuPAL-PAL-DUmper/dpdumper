@@ -104,13 +104,13 @@ The IC definitions must be provided in TOML format and are structured as follows
 #### Adapter section \[adapter\]
 This section contains configuration for adapters plugged in the ZIF socket, that may use additional pins to toggle some functionality.
 
-- hi_pins: array of integers that will specify a list of pins to keep pulled high when the adapter gets powered up, and keep in this state all the time until power down
-- notes: Human readable string with notes regarding the adapter. Might be used to print messages to the user in the future.
+- `hi_pins`: array of integers that will specify a list of pins to keep pulled high when the adapter gets powered up, and keep in this state all the time until power down
+- `notes`: Human readable string with notes regarding the adapter. Might be used to print messages to the user in the future.
 
 #### Requirements section \[requirements\]
 To future proof for future hardware revisions, this section specifies which version of the adapter is necessary to read the defined IC. For now, only one field is supported.
 
-- hardware: integer specifying the model number that the dpdumper will check before trying to read anything. Currently it's `3`.
+- `hardware`: integer specifying the model number that the dpdumper will check before trying to read anything. Currently it's `3`.
 
 ### Pin mapping
 The ZIF socket follows the normal pin numbering, but keep in mind that the dupico is meant for a 42 pin socket, the 48 pin footprint is present just for convenience and the bottom 6 pins are all connected to GND and not used in counting the pins.
