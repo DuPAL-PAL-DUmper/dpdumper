@@ -89,17 +89,17 @@ The IC definitions must be provided in TOML format and are structured as follows
 
 #### Root Section
 
-- name: string that contains the name of the device, e.g. `27C16`
-- type: type of the device, the only currently recognized types are `ROM` and `SRAM`, even though only ROMs are tested. `SRAM` is meant for battery backed modules that will be supported in the future
+- `name`: string that contains the name of the device, e.g. `27C16`
+- `type`: type of the device, the only currently recognized types are `ROM` and `SRAM`, even though only ROMs are tested. `SRAM` is meant for battery backed modules that will be supported in the future
 
 #### Pinout section \[pinout\]
 
-- address: array of integers that define the address pins location on the ZIF42 socket, starting from A0 and going onwards in order. E.g. `[12, 11, 10, 9, 8, 7, 6, 5, 37, 36, 33, 35, 4, 38, 39, 3, 2]`
-- data: array of integers that define the data pins location on the ZIF42 socket, starting from D0 and going onwards
-- H_enable: array of integers that define which pins need to be pulled high to enable this IC
-- L_enable: array of integers that define which pins need to be pulled low to enable this IC. **This is currently unused**, as all pins not required to be pulled high by other parameters are pulled low by default. It might be useful in the future if code that needs to deselect/reselect the IC needs to be written, and thus these pins must be toggled high.
-- H_write: array of integers that define which pins need to be pulled high to enable write mode on this IC.
-- L_write: array of integers that define which pins need to be pulled low to enable write mode on this IC. This is necessary so write mode can be toggled by pulling these high.
+- `address`: array of integers that define the address pins location on the ZIF42 socket, starting from A0 and going onwards in order. E.g. `[12, 11, 10, 9, 8, 7, 6, 5, 37, 36, 33, 35, 4, 38, 39, 3, 2]`
+- `data`: array of integers that define the data pins location on the ZIF42 socket, starting from D0 and going onwards
+- `H_enable`: array of integers that define which pins need to be pulled high to enable this IC
+- `L_enable`: array of integers that define which pins need to be pulled low to enable this IC. **This is currently unused**, as all pins not required to be pulled high by other parameters are pulled low by default. It might be useful in the future if code that needs to deselect/reselect the IC needs to be written, and thus these pins must be toggled high.
+- `H_write`: array of integers that define which pins need to be pulled high to enable write mode on this IC.
+- `L_write`: array of integers that define which pins need to be pulled low to enable write mode on this IC. This is necessary so write mode can be toggled by pulling these high.
 
 #### Adapter section \[adapter\]
 This section contains configuration for adapters plugged in the ZIF socket, that may use additional pins to toggle some functionality.
