@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.3.0] - 2024-08-12
+## Changed
+- Depends on dupicolib 0.4.0
+
 ## [0.2.1] - 2024-08-12
 ### Changed
 - Require dupicolib 0.3.2

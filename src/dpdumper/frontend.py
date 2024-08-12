@@ -10,7 +10,7 @@ import serial
 
 from enum import Enum
 
-from dupicolib.board_commands import BoardCommands
+from dupicolib.hardware_board_commands import HardwareBoardCommands
 from dupicolib.board_command_class_factory import BoardCommandClassFactory
 from dupicolib.board_utilities import BoardUtilities
 from dupicolib.board_fw_version import FwVersionTools, FWVersionDict
@@ -111,7 +111,7 @@ def print_note(note: str, delay: int = 5) -> None:
         time.sleep(1)
     print(' ' * 80, end='\r')
 
-def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
+def test_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands]) -> None:
     delay: int = 5
 
     print('Make sure the ZIF socket is empty before starting the test!')
@@ -128,7 +128,7 @@ def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
+def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
     print(f'Reading from IC {ic_definition.name}')
@@ -158,7 +158,7 @@ def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: IC
 
     return
 
-def write_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
+def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
     print('⚠️ Writing is untested ⚠️\n')
@@ -206,7 +206,7 @@ def cli() -> int:
                 return -1
             
             _LOGGER.info(f'Board connected @{args.port}, speed:{args.baudrate} ...')
-            model: int | None = BoardCommands.get_model(ser_port)
+            model: int | None = HardwareBoardCommands.get_model(ser_port)
             if model is None:
                 _LOGGER.critical('Unable to retrieve model number...')
                 return -1
@@ -216,7 +216,7 @@ def cli() -> int:
             else:
                 _LOGGER.info(f'Model {model} detected!')
 
-            fw_version: str | None = BoardCommands.get_version(ser_port)
+            fw_version: str | None = HardwareBoardCommands.get_version(ser_port)
             fw_version_dict: FWVersionDict
             if fw_version is None:
                 _LOGGER.critical('Unable to retrieve firmware version...')
@@ -226,7 +226,7 @@ def cli() -> int:
                 _LOGGER.info(f'Firmware version on board is "{fw_version}"')
 
             # Now we have enough information to obtain the class that handles commands specific for this board
-            command_class: BoardCommands = BoardCommandClassFactory.get_command_class(model, fw_version_dict)
+            command_class: type[HardwareBoardCommands] = BoardCommandClassFactory.get_command_class(model, fw_version_dict) # type: ignore
 
             # Load and check IC definition requirements
             ic_definition: ICDefinition

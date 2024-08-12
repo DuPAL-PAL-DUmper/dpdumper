@@ -4,5 +4,6 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "austin.mode": "Wall time"
+    "austin.mode": "Wall time",
+    "python.analysis.typeCheckingMode": "basic"
 }

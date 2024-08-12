@@ -6,7 +6,7 @@ import serial
 import math
 import logging
 
-from dupicolib.board_commands import BoardCommands
+from dupicolib.hardware_board_commands import HardwareBoardCommands
 
 from dpdumper.ic.ic_definition import ICDefinition
 from dpdumper.dumper_utilities import grouped_iterator
@@ -23,7 +23,7 @@ def _print_progressBar (iteration: int, total: int, prefix: str = '', suffix: st
     if iteration == total: 
         print()
 
-def _read_pin_map_generator(cmd_class: BoardCommands, ic: ICDefinition, check_hiz: bool = False) -> Generator[int, None, None]:
+def _read_pin_map_generator(cmd_class: type[HardwareBoardCommands], ic: ICDefinition, check_hiz: bool = False) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
 
     hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
@@ -58,7 +58,7 @@ class HLBoardUtilities:
     _MAX_CONSECUTIVE_COMMANDS: int = 8
 
     @classmethod
-    def read_ic(cls, ser: serial.Serial, cmd_class: BoardCommands, ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
+    def read_ic(cls, ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
         read_data: list[DataElement] = []
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         wr_responses: list[int] = []
@@ -70,8 +70,8 @@ class HLBoardUtilities:
 
             _LOGGER.debug(f'This IC requires the following pin mask forced high: {hi_pins_mapped:0{16}X}')
 
-            cmd_class.write_pins(ser, hi_pins_mapped) # Start with these already enabled
-            cmd_class.set_power(ser, True)
+            cmd_class.write_pins(hi_pins_mapped, ser) # Start with these already enabled
+            cmd_class.set_power(True, ser)
 
             tot_combs: int = addr_combs if not check_hiz else addr_combs * 2
 
@@ -81,7 +81,7 @@ class HLBoardUtilities:
                 if i % 250 == 0:
                     _print_progressBar(i, tot_combs)
 
-                wr_addr_response: int | None = cmd_class.write_pins(ser, pin_map)
+                wr_addr_response: int | None = cmd_class.write_pins(pin_map, ser)
 
                 if wr_addr_response is None:
                     return None # Something went wrong
@@ -101,13 +101,13 @@ class HLBoardUtilities:
             _LOGGER.critical(exc)
         finally:
             print('') # Avoid writing again on the 'Testing block' string
-            cmd_class.set_power(ser, False)
-            cmd_class.write_pins(ser, 0)
+            cmd_class.set_power(False, ser)
+            cmd_class.write_pins(0, ser)
 
         return read_data[:addr_combs]
 
     @staticmethod
-    def write_ic(ser: serial.Serial, cmd_class: BoardCommands, ic: ICDefinition, data: list[int]) -> None:
+    def write_ic(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, data: list[int]) -> None:
         data_width: int = int(math.ceil(len(ic.data) / 8.0))
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         _LOGGER.debug(f'write_ic command with definition {ic.name}, IC has {addr_combs} addresses and data width {data_width} bits.')
@@ -130,8 +130,8 @@ class HLBoardUtilities:
 
         try:
             # Start with the pins that must be forced high
-            cmd_class.write_pins(ser, hi_pins_mapped)
-            cmd_class.set_power(ser, True)
+            cmd_class.write_pins(hi_pins_mapped, ser)
+            cmd_class.set_power(True, ser)
 
             for i in range(0, addr_combs):
                 if i % 250 == 0:
@@ -141,17 +141,17 @@ class HLBoardUtilities:
                 data_mapped: int = cmd_class.map_value_to_pins(ic.data, data[i])
 
                 # Set data and address, but with writing disabled
-                cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped, ser)
                 # Enable writing
-                cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
+                cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped, ser)
                 # Disable writing before switching to the next address
-                cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+                cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped, ser)
             
             _print_progressBar(addr_combs, addr_combs)
         finally:
             print('')
-            cmd_class.set_power(ser, False)
-            cmd_class.write_pins(ser, 0)
+            cmd_class.set_power(False, ser)
+            cmd_class.write_pins(0, ser)
 
 
                 
