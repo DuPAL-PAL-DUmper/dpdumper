@@ -4,6 +4,7 @@ Changelog for the dpdumper utility
 ## [0.2.1] - 2024-08-12
 ### Changed
 - Require dupicolib 0.3.2
+- Updated requirements
 
 ### Added
 - Added progress bar to track read/write completion
