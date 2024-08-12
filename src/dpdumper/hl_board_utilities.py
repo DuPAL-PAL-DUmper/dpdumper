@@ -13,7 +13,17 @@ from dpdumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)
 
-def _read_pin_map_generator(cmd_class: BoardCommands, ic: ICDefinition, check_hiz: bool = False, divisible_by: int = 1) -> Generator[int, None, None]:
+# Taken from https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
+def _print_progressBar (iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 50, fill: str = '█', printEnd: str = '\r'):
+    percent: str = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength: int = int(length * iteration // total)
+    bar: str = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+
+def _read_pin_map_generator(cmd_class: BoardCommands, ic: ICDefinition, check_hiz: bool = False) -> Generator[int, None, None]:
     addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
 
     hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
@@ -34,14 +44,6 @@ def _read_pin_map_generator(cmd_class: BoardCommands, ic: ICDefinition, check_hi
             out_data_h: int = hi_pins_mapped | data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
             yield out_data_h
 
-    remainder: int = addr_combs % divisible_by
-    if remainder > 0:
-        for i in range(0, divisible_by - remainder):
-            yield hi_pins_mapped # Even if we're left with nothing to try, keep the pins that must be forced high as such
-            if check_hiz:
-                yield hi_pins_mapped
-
-
 @final
 class DataElement(NamedTuple):
     data: int
@@ -60,8 +62,6 @@ class HLBoardUtilities:
         read_data: list[DataElement] = []
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         wr_responses: list[int] = []
-        response: str | None = None
-        block_size: int = 14 # This almost fills the buffer size on the dupico
         
         _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
@@ -73,19 +73,22 @@ class HLBoardUtilities:
             cmd_class.write_pins(ser, hi_pins_mapped) # Start with these already enabled
             cmd_class.set_power(ser, True)
 
-            tot_blocks: int = math.ceil(addr_combs / block_size)
-            tot_blocks = tot_blocks if not check_hiz else tot_blocks * 2
+            tot_combs: int = addr_combs if not check_hiz else addr_combs * 2
 
-            pin_map_gen = _read_pin_map_generator(cmd_class, ic, check_hiz, block_size)
+            pin_map_gen = _read_pin_map_generator(cmd_class, ic, check_hiz)
             
-            for i, pin_map in enumerate(grouped_iterator(pin_map_gen, block_size)):
-                print(f'Reading block {i+1}/{int(tot_blocks)}'.ljust(80, ' '), end='\r')
-                wre_block_responses: list[int] | None = cmd_class.write_pins_extended(ser, pin_map)
+            for i, pin_map in enumerate(pin_map_gen):
+                if i % 250 == 0:
+                    _print_progressBar(i, tot_combs)
 
-                if wre_block_responses is None:
+                wr_addr_response: int | None = cmd_class.write_pins(ser, pin_map)
+
+                if wr_addr_response is None:
                     return None # Something went wrong
                 else:
-                    wr_responses.extend(wre_block_responses)
+                    wr_responses.append(wr_addr_response)
+
+            _print_progressBar(tot_combs, tot_combs)
 
             if check_hiz:
                 for pulled_low, pulled_up in grouped_iterator(wr_responses, 2):
@@ -113,7 +116,6 @@ class HLBoardUtilities:
         if addr_combs != len(data):
             raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
 
-
         hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
         act_h_mapped: int = cmd_class.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
@@ -132,7 +134,9 @@ class HLBoardUtilities:
             cmd_class.set_power(ser, True)
 
             for i in range(0, addr_combs):
-                print(f'Writing addr {i} with data {data[i]:0{data_width*2}X}'.ljust(80, ' '), end='\r')
+                if i % 250 == 0:
+                    _print_progressBar(i, addr_combs)
+                
                 address_mapped: int = cmd_class.map_value_to_pins(ic.address, i)
                 data_mapped: int = cmd_class.map_value_to_pins(ic.data, data[i])
 
@@ -142,6 +146,8 @@ class HLBoardUtilities:
                 cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped)
                 # Disable writing before switching to the next address
                 cmd_class.write_pins(ser, hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped)
+            
+            _print_progressBar(addr_combs, addr_combs)
         finally:
             print('')
             cmd_class.set_power(ser, False)

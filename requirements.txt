@@ -1,5 +1,5 @@
 pyserial>=3.5
-setuptools==71.1.0
+setuptools==72.1.0
 build==1.2.1
-pytest==8.2.2
-dupicolib>=0.2.0
+pytest==8.3.2
+dupicolib>=0.3.2

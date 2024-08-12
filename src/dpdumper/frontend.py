@@ -4,6 +4,7 @@ import argparse
 import traceback
 import logging
 import time
+import math
 
 import serial
 
@@ -130,10 +131,13 @@ def test_command(ser: serial.Serial, cmd_class: BoardCommands) -> None:
 def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
 
+    print(f'Reading from IC {ic_definition.name}')
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
+    start_time: float = time.time()
     ic_data: list[DataElement] | None = HLBoardUtilities.read_ic(ser, cmd_class, ic_definition, check_hiz)
+    end_time: float = time.time()
 
     if ic_data is None:
         _LOGGER.critical(f'Unable to read data from the IC {ic_definition.name}')
@@ -141,6 +145,8 @@ def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: IC
 
     # No point in keeping the connection open. Close it early, as the dupico will power down the IC when connection closes.
     ser.close()
+
+    print(f'Reading this IC took {math.ceil(end_time - start_time)} seconds.')
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
     data_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
@@ -155,13 +161,19 @@ def read_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: IC
 def write_command(ser: serial.Serial, cmd_class: BoardCommands, ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
+    print('⚠️ Writing is untested ⚠️\n')
     print(f'Writing to IC {ic_definition.name}')
 
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
     data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
+    
+    start_time: float = time.time()
     HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list)
+    end_time: float = time.time()
+
+    print(f'Writing to this IC took {math.ceil(end_time - start_time)} seconds.')
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
@@ -189,7 +201,7 @@ def cli() -> int:
                                      parity = 'N',
                                      timeout = 5.0)
 
-            if not BoardUtilities.check_connection_string(ser_port):
+            if not BoardUtilities.initialize_connection(ser_port):
                 _LOGGER.critical('Serial port connected, but the board did not respond in time.')
                 return -1
             
