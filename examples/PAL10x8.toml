@@ -1,0 +1,23 @@
+# Example of a definition for a PAL10x8
+
+name = "PAL10x8"
+type = "ROM"
+
+[pinout]
+ZIF_map = [3, 4, 5, 6, 7, 8, 9, 10, 11, 21, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42]
+address = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]
+data = [12, 13, 14, 15, 16, 17, 18, 19]
+H_enable = []
+L_enable = []
+H_write = [] 
+L_write = []
+
+[adapter]
+# pins that need to be forced high to read this in the adapter
+hi_pins = [22]
+# Notes on the adapter necessary to read this IC
+notes = "Insert the PAL POD in the dupico, topmost position in socket, and insert the PAL in the bottom of the ZIF24 socket."
+
+[requirements]
+hardware = 3
+
