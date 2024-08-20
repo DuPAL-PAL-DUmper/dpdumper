@@ -1,6 +1,14 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.3.1] - 2024-08-19
+## Changed
+- Depends on dupicolib 0.4.2
+- Split out some code in dpdumperlib, now depends on version 0.0.1
+
+## Removed
+- Example definitions are now moved in the dpdumperlib repo
+
 ## [0.3.0] - 2024-08-12
 ## Changed
 - Depends on dupicolib 0.4.0

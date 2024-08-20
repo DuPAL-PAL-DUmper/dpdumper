@@ -7,8 +7,8 @@ import math
 import logging
 
 from dupicolib.hardware_board_commands import HardwareBoardCommands
+from dpdumperlib.ic.ic_definition import ICDefinition
 
-from dpdumper.ic.ic_definition import ICDefinition
 from dpdumper.dumper_utilities import grouped_iterator
 
 _LOGGER = logging.getLogger(__name__)

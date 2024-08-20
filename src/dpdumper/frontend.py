@@ -15,11 +15,12 @@ from dupicolib.board_command_class_factory import BoardCommandClassFactory
 from dupicolib.board_utilities import BoardUtilities
 from dupicolib.board_fw_version import FwVersionTools, FWVersionDict
 
+from dpdumperlib.ic.ic_loader import ICLoader
+from dpdumperlib.ic.ic_definition import ICDefinition
+
 from dpdumper import __name__, __version__
 from dpdumper.dumper_utilities import DumperUtilities
 from dpdumper.hl_board_utilities import HLBoardUtilities, DataElement
-from dpdumper.ic.ic_loader import ICLoader
-from dpdumper.ic.ic_definition import ICDefinition
 
 import dpdumper.outfile_utilities as OutFileUtilities
 

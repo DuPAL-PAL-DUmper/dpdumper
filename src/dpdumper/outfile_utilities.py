@@ -5,8 +5,9 @@ import hashlib
 
 from typing import Generator
 
+from dpdumperlib.ic.ic_definition import ICDefinition
+
 from dpdumper.hl_board_utilities import DataElement
-from dpdumper.ic.ic_definition import ICDefinition
 from dpdumper.dumper_utilities import grouped_iterator
 
 # See https://stackoverflow.com/questions/8898807/pythonic-way-to-iterate-over-bits-of-integer
@@ -64,7 +65,7 @@ def build_output_table_file(outf: str, ic: ICDefinition, elements: list[DataElem
 
     with open(outf, "wt") as f:
         f.write(f'Name:\t{ic.name}\n')
-        f.write(f'Type:\t{ic.type.value}\n')
+        f.write(f'Type:\t{ic.ic_type.value}\n')
         f.write(f'A:\t{len(ic.address)}\n')
         f.write(f'D:\t{len(ic.data)}\n')
         f.write('\n')
