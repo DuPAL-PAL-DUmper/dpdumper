@@ -71,6 +71,10 @@ def _build_argsparser() -> argparse.ArgumentParser:
                              type=str,
                              metavar='binary output file',
                              help='Binary output file that will contain the data read from the IC')
+    parser_read.add_argument('-obz', '--outfile_binary_z',
+                             type=str,
+                             metavar='binary output file for the Hi-Z mask',
+                             help='Binary output file that will contain the Hi-Z mask for every data entry')
     parser_read.add_argument('--check_hiz',
                              action='store_true',
                              default=False,
@@ -129,8 +133,12 @@ def test_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands]) -> 
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, outf: str, outfb: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
-    _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, check hi-z {check_hiz}, treat hi-z as high {hiz_high}')
+def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, outf: str, outfb: str | None = None, outfbz: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
+    _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, output Hi-Z binary {outfbz}, check Hi-Z {check_hiz}, treat Hi-Z as high {hiz_high}')
+
+    if outfbz and not check_hiz:
+        _LOGGER.warn(f'Output for Hi-Z binary {outfbz} was requested, but check for Hi-Z was disabled, we are not going to write the file!')
+        outfbz = None
 
     print(f'Reading from IC {ic_definition.name}')
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
@@ -150,12 +158,15 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
     print(f'Reading this IC took {math.ceil(end_time - start_time)} seconds.')
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
-    data_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
+    data_array, hiz_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
 
     print(f'Read data has SHA1SUM {sha1sum}')
 
     if outfb:
         OutFileUtilities.build_output_binary_file(outfb, data_array)
+
+    if outfbz:
+        OutFileUtilities.build_output_binary_file(outfbz, hiz_array)
 
     return
 
@@ -245,6 +256,7 @@ def cli() -> int:
                 case Subcommands.READ.value:
                     read_command(ser_port, command_class, ic_definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
+                                 args.outfile_binary_z if args.outfile_binary_z else None,
                                  args.check_hiz,
                                  args.hiz_high,
                                  args.skip_note)

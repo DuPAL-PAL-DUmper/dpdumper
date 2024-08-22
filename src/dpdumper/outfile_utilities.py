@@ -33,7 +33,7 @@ def build_data_list_from_file(inf: str, ic: ICDefinition) -> list[int]:
 
     return data_list
 
-def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, str]:
+def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, bytearray, str]:
     """Builds a binary array out of data read from the IC, and returns it plus the SHA1SUM of the data
 
     Args:
@@ -42,19 +42,23 @@ def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: 
         hiz_high (bool, optional): True if the Hi-Z pins will be represented as 1 in the binary out. Defaults to False.
 
     Returns:
-        tuple[bytearray, str]: Tuple containing the byte array and the sha1 sum for it
+        tuple[bytearray, bytearray, str]: Tuple containing the byte array for the data, for they hi-z and the sha1 sum for data
     """
     data_width: int = len(ic.data)
     # Use upside-down floor division: https://stackoverflow.com/questions/14822184/is-there-a-ceiling-equivalent-of-operator-in-python
     bytes_per_entry = -(data_width // -8)
     data_arr: bytearray = bytearray()
+    hiz_arr: bytearray = bytearray()
 
     for el in elements:
         data: int = el.data | (el.z_mask if hiz_high else 0)
         data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
         data_arr.append(*data_b)
 
-    return (data_arr, hashlib.sha1(data_arr).hexdigest())  
+        data_z: bytes = el.z_mask.to_bytes(bytes_per_entry, 'big')
+        hiz_arr.append(*data_z)
+
+    return (data_arr, hiz_arr, hashlib.sha1(data_arr).hexdigest())  
 
 def build_output_binary_file(outf: str, data: bytearray) -> None:
     with open(outf, 'wb') as f:

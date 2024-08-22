@@ -2,6 +2,9 @@
 Changelog for the dpdumper utility
 
 ## [0.3.2] - 2024-08-21
+## Added
+- Flag to output the Hi-Z mask of every read in binary format
+
 ## Changed
 - Use upside-down floor division to calculate number of bytes for data entriess and addresses
 - Tool description in argsparse
