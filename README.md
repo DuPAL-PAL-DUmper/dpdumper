@@ -67,6 +67,8 @@ options:
                         Output file that will contain the data read from the IC in ASCII human-readable format
   -ob binary output file, --outfile_binary binary output file
                         Binary output file that will contain the data read from the IC
+  -obz binary output file for the Hi-Z mask, --outfile_binary_z binary output file for the Hi-Z mask
+                        Binary output file that will contain the Hi-Z mask for every data entry
   --check_hiz           Check if data pins are Hi-Z or not. Slows down the read.
   --hiz_high            The binary output will be saved with hi-z bits set to 1
 ```
@@ -145,4 +147,4 @@ GND ---> 21      22
 
 ## Requirements
 
-The [dupicolib](https://github.com/DuPAL-PAL-DUmper/dupicolib) library is required for this tool to work.
+The [dupicolib](https://github.com/DuPAL-PAL-DUmper/dupicolib) and [dpdumperlib](https://github.com/DuPAL-PAL-DUmper/dpdumperlib) libraries are required for this tool to work.
