@@ -36,7 +36,7 @@ class Subcommands(Enum):
 def _build_argsparser() -> argparse.ArgumentParser:
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog=__name__,
-        description='A tool for fiddling with a dupico board'
+        description='A tool to dump combinatorial ICs with a dupico board'
     )
    
     parser.add_argument('-v', '--verbose', action='count', default=0)
