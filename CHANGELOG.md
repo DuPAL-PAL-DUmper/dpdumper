@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.3.2] - 2024-08-21
+## Changed
+- Use upside-down floor division to calculate number of bytes for data entriess and addresses
+
 ## [0.3.1] - 2024-08-19
 ## Changed
 - Depends on dupicolib 0.4.2
