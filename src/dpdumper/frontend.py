@@ -17,6 +17,7 @@ from dupicolib.board_fw_version import FwVersionTools, FWVersionDict
 
 from dpdumperlib.ic.ic_loader import ICLoader
 from dpdumperlib.ic.ic_definition import ICDefinition
+import dpdumperlib.io.file_utils as FileUtils
 
 from dpdumper import __name__, __version__
 from dpdumper.dumper_utilities import DumperUtilities
@@ -179,7 +180,8 @@ def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
-    data_list: list[int] = OutFileUtilities.build_data_list_from_file(inf, ic_definition)
+    bytes_per_entry: int = -(len(ic_definition.data) // -8)
+    data_list: list[int] = FileUtils.load_file_data(inf, bytes_per_entry)
     
     start_time: float = time.time()
     HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list)

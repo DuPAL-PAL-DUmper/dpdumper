@@ -18,21 +18,6 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
         yield b
         n ^= b
 
-def build_data_list_from_file(inf: str, ic: ICDefinition) -> list[int]:
-    data_list: list[int] = []
-    in_content: bytes
-    with open(inf, 'rb') as f:
-        in_content = f.read()
-
-    data_width: int = len(ic.data)
-    # Use upside-down floor division: https://stackoverflow.com/questions/14822184/is-there-a-ceiling-equivalent-of-operator-in-python
-    bytes_per_entry = -(data_width // -8)
-
-    for block in grouped_iterator(in_content, bytes_per_entry):
-        data_list.append(int.from_bytes(block, byteorder='big', signed=False))
-
-    return data_list
-
 def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, bytearray, str]:
     """Builds a binary array out of data read from the IC, and returns it plus the SHA1SUM of the data
 

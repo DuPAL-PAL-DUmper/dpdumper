@@ -1,24 +1,28 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.3.3] - 2024-08-22
+### Changed
+- Depends on dpdumperlib 0.0.2
+
 ## [0.3.2] - 2024-08-21
-## Added
+### Added
 - Flag to output the Hi-Z mask of every read in binary format
 
-## Changed
+### Changed
 - Use upside-down floor division to calculate number of bytes for data entriess and addresses
 - Tool description in argsparse
 
 ## [0.3.1] - 2024-08-19
-## Changed
+### Changed
 - Depends on dupicolib 0.4.2
 - Split out some code in dpdumperlib, now depends on version 0.0.1
 
-## Removed
+### Removed
 - Example definitions are now moved in the dpdumperlib repo
 
 ## [0.3.0] - 2024-08-12
-## Changed
+### Changed
 - Depends on dupicolib 0.4.0
 
 ## [0.2.1] - 2024-08-12

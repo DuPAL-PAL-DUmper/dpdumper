@@ -108,13 +108,13 @@ class HLBoardUtilities:
 
     @staticmethod
     def write_ic(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, data: list[int]) -> None:
-        data_width: int = int(math.ceil(len(ic.data) / 8.0))
+        data_width: int = -(len(ic.data) // -8)
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         _LOGGER.debug(f'write_ic command with definition {ic.name}, IC has {addr_combs} addresses and data width {data_width} bits.')
 
         # Check that we have enough data (or not too much) to write
-        if addr_combs != len(data):
-            raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {len(data)}')
+        if (d_len := len(data)) != addr_combs:
+            raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {d_len}')
 
         hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
