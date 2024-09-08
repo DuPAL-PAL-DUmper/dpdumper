@@ -1,11 +1,11 @@
 """This module contains high level utility code to perform operations on the board"""
 
-from typing import Generator, final, NamedTuple
-
-import serial
-import math
+from typing import Callable, Generator, List, final, NamedTuple
 import logging
 
+import serial
+
+import dupicolib.utils as DPLibUtils
 from dupicolib.hardware_board_commands import HardwareBoardCommands
 from dpdumperlib.ic.ic_definition import ICDefinition
 
@@ -44,6 +44,15 @@ def _read_pin_map_generator(cmd_class: type[HardwareBoardCommands], ic: ICDefini
             out_data_h: int = hi_pins_mapped | data_on_mapped | act_h_mapped | wr_l_mapped | address_mapped
             yield out_data_h
 
+def _build_update_callback(max_size: int) -> Callable[[int], None]:
+    def update_callback(cur_read: int) -> None:
+        if cur_read > max_size:
+            cur_read = max_size
+        _print_progressBar(cur_read, max_size)
+
+    return update_callback
+
+
 @final
 class DataElement(NamedTuple):
     data: int
@@ -60,49 +69,54 @@ class HLBoardUtilities:
     @classmethod
     def read_ic(cls, ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
         read_data: list[DataElement] = []
-        addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
-        wr_responses: list[int] = []
-        
+        addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses
+        data_width: int = -(len(ic.data) // -8)
+        dump_size: int = addr_combs * data_width
+        hi_pins: list[int] = list(set(ic.act_h_enable + ic.adapter_hi_pins))
+
+        data_normal: bytes | None = None
+        data_invert: bytes | None = None
+
+        upd_callback = _build_update_callback(dump_size)
+
         _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
+        print(f'IC has {addr_combs} addresses, for a total size of ~{-(dump_size//-1024)}KB.')
+        if check_hiz:
+            print('Read will be done in two passes to check for Hi-Z pins.')
+
         try:
-            hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
-
-            _LOGGER.debug(f'This IC requires the following pin mask forced high: {hi_pins_mapped:0{16}X}')
-
-            cmd_class.write_pins(hi_pins_mapped, ser) # Start with these already enabled
             cmd_class.set_power(True, ser)
 
-            tot_combs: int = addr_combs if not check_hiz else addr_combs * 2
+            data_normal = cmd_class.cxfer_read(ic.address, ic.data, hi_pins, upd_callback, ser)
 
-            pin_map_gen = _read_pin_map_generator(cmd_class, ic, check_hiz)
-            
-            for i, pin_map in enumerate(pin_map_gen):
-                if i % 250 == 0:
-                    _print_progressBar(i, tot_combs)
+            if not data_normal:
+                raise IOError('Unable to read data from IC')
 
-                wr_addr_response: int | None = cmd_class.write_pins(pin_map, ser)
-
-                if wr_addr_response is None:
-                    return None # Something went wrong
-                else:
-                    wr_responses.append(wr_addr_response)
-
-            _print_progressBar(tot_combs, tot_combs)
-
+            # If we need to check for Hi-Z, we need to forcefully set data pins to high and then redo the dump
             if check_hiz:
-                for pulled_low, pulled_up in grouped_iterator(wr_responses, 2):
-                    hiz_pins: int = pulled_low ^ pulled_up
-                    read_data.append(DataElement(data=cmd_class.map_pins_to_value(ic.data, pulled_low), z_mask=cmd_class.map_pins_to_value(ic.data, hiz_pins)))
-            else:
-                for pulled_low in wr_responses:
-                    read_data.append(DataElement(data=cmd_class.map_pins_to_value(ic.data, pulled_low)))
-        except Exception as exc:
-            _LOGGER.critical(exc)
+                print('Performing a second pass to detect Hi-Z pins!')
+                hi_pins = list(set(hi_pins + ic.data))
+                data_invert = cmd_class.cxfer_read(ic.address, ic.data, hi_pins, upd_callback, ser)
         finally:
-            print('') # Avoid writing again on the 'Testing block' string
+            ser.reset_input_buffer()
+            ser.reset_output_buffer()
             cmd_class.set_power(False, ser)
             cmd_class.write_pins(0, ser)
+
+        # Reconstruct the data elements
+        if data_normal and data_invert:
+            if len(data_normal) != len(data_invert):
+                raise IOError('Same IC read twice, bug got two dumps of different length!!!')
+
+            for dn, di in zip(DPLibUtils.iter_grouper(data_normal, data_width, 0), DPLibUtils.iter_grouper(data_invert, data_width, 0)):
+                dni = int.from_bytes(bytes(dn))
+                dii = int.from_bytes(bytes(di))
+                read_data.append(DataElement(data=dni, z_mask=dni^dii))
+        else:
+            for dn in DPLibUtils.iter_grouper(data_normal, data_width, 0):
+                dni = int.from_bytes(bytes(dn))
+                read_data.append(DataElement(data=dni))
 
         return read_data[:addr_combs]
 

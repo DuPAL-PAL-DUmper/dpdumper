@@ -1,6 +1,11 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.4.0] - 2024-08-22
+### Changed
+- Depends on dupicolib 0.5.0
+- Reading ICs now uses a different protocol that cuts transfer time in roughly half
+
 ## [0.3.3] - 2024-08-22
 ### Changed
 - Depends on dpdumperlib 0.0.2
