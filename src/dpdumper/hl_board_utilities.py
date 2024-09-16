@@ -72,7 +72,8 @@ class HLBoardUtilities:
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses
         data_width: int = -(len(ic.data) // -8)
         dump_size: int = addr_combs * data_width
-        hi_pins: list[int] = list(set(ic.act_h_enable + ic.adapter_hi_pins))
+        # Make sure we toggle the enable pins for the IC, and disable the active-low for writing (the other pins will all default to low)
+        hi_pins: list[int] = list(set(ic.act_h_enable + ic.act_l_write + ic.adapter_hi_pins))
 
         data_normal: bytes | None = None
         data_invert: bytes | None = None
@@ -121,7 +122,7 @@ class HLBoardUtilities:
         return read_data[:addr_combs]
 
     @staticmethod
-    def write_ic(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, data: list[int]) -> None:
+    def write_ic(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, data: list[int], begin_skip: int = 0, end_skip: int = 0) -> None:
         data_width: int = -(len(ic.data) // -8)
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses that this IC supports
         _LOGGER.debug(f'write_ic command with definition {ic.name}, IC has {addr_combs} addresses and data width {data_width} bits.')
@@ -129,6 +130,12 @@ class HLBoardUtilities:
         # Check that we have enough data (or not too much) to write
         if (d_len := len(data)) != addr_combs:
             raise ValueError(f'IC definition supports {addr_combs} addresses, but input array has {d_len}')
+
+        if addr_combs - (begin_skip + end_skip) <= 0:
+            raise ValueError(f'Skipping {begin_skip} entries at the beginning and {end_skip} entries at the end results in a 0 or negative number of addresses')
+
+        # Write only up to the address obtained by skipping the selected ones
+        addr_combs = addr_combs - end_skip
 
         hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
@@ -147,7 +154,7 @@ class HLBoardUtilities:
             cmd_class.write_pins(hi_pins_mapped, ser)
             cmd_class.set_power(True, ser)
 
-            for i in range(0, addr_combs):
+            for i in range(begin_skip, addr_combs):
                 if i % 250 == 0:
                     _print_progressBar(i, addr_combs)
                 

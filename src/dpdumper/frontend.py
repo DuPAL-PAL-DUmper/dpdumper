@@ -99,6 +99,16 @@ def _build_argsparser() -> argparse.ArgumentParser:
                               metavar='input file',
                               help='File with the contents that will be written to the IC',
                               required=True)
+    parser_write.add_argument('-ss', '--start_skip',
+                              type=int,
+                              default=0,
+                              metavar='start entries to skip',
+                              help='Number of entries to skip at start of the write')
+    parser_write.add_argument('-es', '--end_skip',
+                              type=int,
+                              default=0,
+                              metavar='ending entries to skip',
+                              help='Number of entries to skip at end of the write')
     parser_write.add_argument('--skip_note',
                              action='store_true',
                              default=False,
@@ -171,11 +181,13 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
 
     return
 
-def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, skip_note: bool = False) -> None:
+def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, begin_skip: int = 0, end_skip: int = 0, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
-    print('⚠️ Writing is untested ⚠️\n')
     print(f'Writing to IC {ic_definition.name}')
+    
+    if begin_skip or end_skip:
+        print(f'Skipping {begin_skip} entries at the start, and {end_skip} at the end.')
 
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
@@ -184,7 +196,7 @@ def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic
     data_list: list[int] = FileUtils.load_file_data(inf, bytes_per_entry)
     
     start_time: float = time.time()
-    HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list)
+    HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list, begin_skip, end_skip)
     end_time: float = time.time()
 
     print(f'Writing to this IC took {math.ceil(end_time - start_time)} seconds.')
@@ -254,7 +266,10 @@ def cli() -> int:
                 case Subcommands.TEST.value:
                     test_command(ser_port, command_class)
                 case Subcommands.WRITE.value:
-                    write_command(ser_port, command_class, ic_definition, args.infile, args.skip_note)
+                    write_command(ser_port, command_class, ic_definition, args.infile, 
+                                  args.start_skip,
+                                  args.end_skip,
+                                  args.skip_note)
                 case Subcommands.READ.value:
                     read_command(ser_port, command_class, ic_definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,

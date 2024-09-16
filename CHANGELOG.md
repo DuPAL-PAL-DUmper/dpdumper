@@ -1,6 +1,16 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.4.1] - 2024-09-14
+### Fixed
+- Pins that are Active-LOW to enable writing on an IC, are now set to high when reading
+
+### Added
+- Added optional parameters to write mode so that an arbitrary number of addresses can be skipped at the start or at the end of the address space for writing
+
+### Changed
+- Removed warning that writing is untested
+
 ## [0.4.0] - 2024-08-22
 ### Changed
 - Depends on dupicolib 0.5.0
