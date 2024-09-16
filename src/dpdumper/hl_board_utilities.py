@@ -72,7 +72,14 @@ class HLBoardUtilities:
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses
         data_width: int = -(len(ic.data) // -8)
         dump_size: int = addr_combs * data_width
-        # Make sure we toggle the enable pins for the IC, and disable the active-low for writing (the other pins will all default to low)
+
+        # We use this to make sure we start in a safe mode, with IC deselected and write disabled
+        hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)        
+        act_l_mapped: int = cmd_class.map_value_to_pins(ic.act_l_enable, 0xFFFFFFFFFFFFFFFF)
+        wr_l_mapped: int = cmd_class.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF)
+
+        # This is to be passed to the CXFER transfer:
+        # make sure we toggle the enable pins for the IC, and disable the active-low for writing (the other pins will all default to low)
         hi_pins: list[int] = list(set(ic.act_h_enable + ic.act_l_write + ic.adapter_hi_pins))
 
         data_normal: bytes | None = None
@@ -87,6 +94,8 @@ class HLBoardUtilities:
             print('Read will be done in two passes to check for Hi-Z pins.')
 
         try:
+            # Set the pins to deselect the IC and disable writing
+            cmd_class.write_pins(hi_pins_mapped | wr_l_mapped | act_l_mapped, ser)
             cmd_class.set_power(True, ser)
 
             data_normal = cmd_class.cxfer_read(ic.address, ic.data, hi_pins, upd_callback, ser)
@@ -140,6 +149,8 @@ class HLBoardUtilities:
         hi_pins_mapped: int = cmd_class.map_value_to_pins(ic.adapter_hi_pins, 0xFFFFFFFFFFFFFFFF)
 
         act_h_mapped: int = cmd_class.map_value_to_pins(ic.act_h_enable, 0xFFFFFFFFFFFFFFFF)
+        
+        act_l_mapped: int = cmd_class.map_value_to_pins(ic.act_l_enable, 0xFFFFFFFFFFFFFFFF)
 
         # These are to disable writing
         wr_l_mapped: int = cmd_class.map_value_to_pins(ic.act_l_write, 0xFFFFFFFFFFFFFFFF)
@@ -150,8 +161,8 @@ class HLBoardUtilities:
         _LOGGER.debug(f'This IC requires the following pin mask forced high: {hi_pins_mapped:0{16}X}')
 
         try:
-            # Start with the pins that must be forced high
-            cmd_class.write_pins(hi_pins_mapped, ser)
+            # Start with the pins that must be forced high, so the IC is deselected
+            cmd_class.write_pins(hi_pins_mapped | wr_l_mapped | act_l_mapped, ser)
             cmd_class.set_power(True, ser)
 
             for i in range(begin_skip, addr_combs):
@@ -165,8 +176,8 @@ class HLBoardUtilities:
                 cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped, ser)
                 # Enable writing
                 cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_h_mapped, ser)
-                # Disable writing before switching to the next address
-                cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_h_mapped | wr_l_mapped, ser)
+                # Disable writing and deselect the IC before switching to the next address
+                cmd_class.write_pins(hi_pins_mapped | address_mapped | data_mapped | act_l_mapped | wr_l_mapped, ser)
             
             _print_progressBar(addr_combs, addr_combs)
         finally:
