@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.4.2] - 2024-09-19
+### Changed
+- Reworded some prints when reading and writing ICs
+
 ## [0.4.1] - 2024-09-14
 ### Fixed
 - Pins that are Active-LOW to enable writing on an IC, are now set to high when reading

@@ -89,7 +89,7 @@ class HLBoardUtilities:
 
         _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
-        print(f'IC has {addr_combs} addresses, for a total size of ~{-(dump_size//-1024)}KB.')
+        print(f'IC has {addr_combs} addresses, data width of {data_width}B, for a total size of ~{-(dump_size//-1024)}KB.')
         if check_hiz:
             print('Read will be done in two passes to check for Hi-Z pins.')
 

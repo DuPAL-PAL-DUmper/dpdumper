@@ -148,10 +148,10 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
     _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, output Hi-Z binary {outfbz}, check Hi-Z {check_hiz}, treat Hi-Z as high {hiz_high}')
 
     if outfbz and not check_hiz:
-        _LOGGER.warn(f'Output for Hi-Z binary {outfbz} was requested, but check for Hi-Z was disabled, we are not going to write the file!')
+        _LOGGER.warning(f'Output for Hi-Z binary {outfbz} was requested, but check for Hi-Z was disabled, we are not going to write the file!')
         outfbz = None
 
-    print(f'Reading from IC {ic_definition.name}')
+    print(f'Reading {ic_definition.name}')
     if not skip_note and ic_definition.adapter_notes and bool(ic_definition.adapter_notes.strip()):
         print_note(ic_definition.adapter_notes)
 
@@ -160,18 +160,18 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
     end_time: float = time.time()
 
     if ic_data is None:
-        _LOGGER.critical(f'Unable to read data from the IC {ic_definition.name}')
+        _LOGGER.critical(f'Unable to read data from {ic_definition.name}')
         return
 
     # No point in keeping the connection open. Close it early, as the dupico will power down the IC when connection closes.
     ser.close()
 
-    print(f'Reading this IC took {math.ceil(end_time - start_time)} seconds.')
+    print(f'Reading took {math.ceil(end_time - start_time)} seconds.')
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
     data_array, hiz_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
 
-    print(f'Read data has SHA1SUM {sha1sum}')
+    print(f'Data has SHA1SUM {sha1sum}')
 
     if outfb:
         OutFileUtilities.build_output_binary_file(outfb, data_array)
@@ -184,7 +184,7 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
 def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, begin_skip: int = 0, end_skip: int = 0, skip_note: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
-    print(f'Writing to IC {ic_definition.name}')
+    print(f'Writing {ic_definition.name}')
     
     if begin_skip or end_skip:
         print(f'Skipping {begin_skip} entries at the start, and {end_skip} at the end.')
@@ -199,7 +199,7 @@ def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic
     HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list, begin_skip, end_skip)
     end_time: float = time.time()
 
-    print(f'Writing to this IC took {math.ceil(end_time - start_time)} seconds.')
+    print(f'Writing took {math.ceil(end_time - start_time)} seconds.')
 
 def cli() -> int:
     args = _build_argsparser().parse_args()
