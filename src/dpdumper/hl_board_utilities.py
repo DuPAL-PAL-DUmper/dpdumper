@@ -1,6 +1,7 @@
 """This module contains high level utility code to perform operations on the board"""
 
 from typing import Callable, Generator, List, final, NamedTuple
+import time
 import logging
 
 import serial
@@ -98,6 +99,9 @@ class HLBoardUtilities:
             cmd_class.write_pins(hi_pins_mapped | wr_l_mapped | act_l_mapped, ser)
             cmd_class.set_power(True, ser)
 
+            # Give the IC some time to settle
+            time.sleep(0.5)
+
             data_normal = cmd_class.cxfer_read(ic.address, ic.data, hi_pins, upd_callback, ser)
 
             if not data_normal:
@@ -164,6 +168,9 @@ class HLBoardUtilities:
             # Start with the pins that must be forced high, so the IC is deselected
             cmd_class.write_pins(hi_pins_mapped | wr_l_mapped | act_l_mapped, ser)
             cmd_class.set_power(True, ser)
+
+            # Give the IC some time to settle
+            time.sleep(0.5)
 
             for i in range(begin_skip, addr_combs):
                 if i % 250 == 0:
