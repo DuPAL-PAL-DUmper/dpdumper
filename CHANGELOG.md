@@ -9,7 +9,7 @@ Changelog for the dpdumper utility
 - Depends on dpdumperlib 0.0.4
 
 ### Added
-- 'rb' flag to reverse byte order and write binaries as little endian
+- 'rb' flag to reverse byte order for read and written files
 
 ## [0.4.2] - 2024-09-19
 ### Changed
