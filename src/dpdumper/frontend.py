@@ -117,7 +117,7 @@ def _build_argsparser() -> argparse.ArgumentParser:
                              action='store_true',
                              default=False,
                              help='If set, skip printing adapter notes and associated delays')
-    parser_read.add_argument('-rb', '--reverse_byte_order',
+    parser_write.add_argument('-rb', '--reverse_byte_order',
                              action='store_true',
                              default=False,
                              help='If set, the input file will be read in Little Endian format')

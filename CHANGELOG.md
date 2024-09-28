@@ -1,7 +1,7 @@
 # Changelog
 Changelog for the dpdumper utility
 
-## [0.4.3] - 2024-09-??
+## [0.4.3] - 2024-09-28
 ### Fix
 - Fix reads with a data bus over 8 bits
 
