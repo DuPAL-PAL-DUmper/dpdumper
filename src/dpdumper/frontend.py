@@ -201,8 +201,7 @@ def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic
         print_note(ic_definition.adapter_notes)
 
     bytes_per_entry: int = -(len(ic_definition.data) // -8)
-    # TODO: Handle reverse byte ordering flag
-    data_list: list[int] = FileUtils.load_file_data(inf, bytes_per_entry)
+    data_list: list[int] = FileUtils.load_file_data(inf, bytes_per_entry, reverse_byte_order)
     
     start_time: float = time.time()
     HLBoardUtilities.write_ic(ser, cmd_class, ic_definition, data_list, begin_skip, end_skip)

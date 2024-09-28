@@ -19,7 +19,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pyserial ~= 3.5",
     "dupicolib >= 0.5.0",
-    "dpdumperlib >= 0.0.2"
+    "dpdumperlib >= 0.0.4"
 ]
 
 [project.scripts]
