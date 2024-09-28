@@ -71,7 +71,8 @@ class HLBoardUtilities:
     def read_ic(cls, ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic: ICDefinition, check_hiz: bool = False) -> list[DataElement] | None:
         read_data: list[DataElement] = []
         addr_combs: int = 1 << len(ic.address) # Calculate the number of addresses
-        data_width: int = -(len(ic.data) // -8)
+        data_width_bits: int = len(ic.data)
+        data_width: int = -(data_width_bits // -8)
         dump_size: int = addr_combs * data_width
 
         # We use this to make sure we start in a safe mode, with IC deselected and write disabled
@@ -90,7 +91,7 @@ class HLBoardUtilities:
 
         _LOGGER.debug(f'read_ic command with definition {ic.name}, checking hi-z {check_hiz}. IC has {addr_combs} addresses and data width {len(ic.data)} bits.')
 
-        print(f'IC has {addr_combs} addresses, data width of {data_width}B, for a total size of ~{-(dump_size//-1024)}KB.')
+        print(f'IC has {addr_combs} addresses, data width of {data_width}B ({data_width_bits} bits), for a total size of ~{-(dump_size//-1024)}KB.')
         if check_hiz:
             print('Read will be done in two passes to check for Hi-Z pins.')
 
