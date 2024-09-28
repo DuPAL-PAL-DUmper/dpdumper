@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.4.3] - 2024-09-??
+### Fix
+- Fix reads with a data bus over 8 bits
+
 ## [0.4.2] - 2024-09-19
 ### Changed
 - Reworded some prints when reading and writing ICs
