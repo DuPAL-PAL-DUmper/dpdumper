@@ -57,7 +57,8 @@ Test result is OK!
 
 ### Read
 ```
-usage: dpdumper read [-h] -d definition file -o output file [-ob binary output file] [--check_hiz] [--hiz_high]
+usage: dpdumper read [-h] -d definition file -o output file [-ob binary output file]
+                     [-obz binary output file for the Hi-Z mask] [--check_hiz] [--hiz_high] [--skip_note] [-rb]
 
 options:
   -h, --help            show this help message and exit
@@ -71,6 +72,9 @@ options:
                         Binary output file that will contain the Hi-Z mask for every data entry
   --check_hiz           Check if data pins are Hi-Z or not. Slows down the read.
   --hiz_high            The binary output will be saved with hi-z bits set to 1
+  --skip_note           If set, skip printing adapter notes and associated delays
+  -rb, --reverse_byte_order
+                        If set, the output binary file will be written in Little Endian format
 ```
 
 The definition file is in TOML format, and described later in this document.
@@ -81,7 +85,29 @@ This means that pins that are actually Hi-Z will be detected as low, but also th
 `--hiz_high`: By default, if hi-z is checked and a binary file is to be written, hi-z pins will be considered low when written. With this flag, they will be written as a high bit.
 
 ### Write
-⚠️ Writing is supported only by some ICs and is, as of now, untested.
+```
+usage: dpdumper write [-h] -d definition file -i input file [-ss start entries to skip] [-es ending entries to skip]
+                      [--skip_note] [-rb]
+
+options:
+  -h, --help            show this help message and exit
+  -d definition file, --definition definition file
+                        Path to the file containing the definition of the IC to be written
+  -i input file, --infile input file
+                        File with the contents that will be written to the IC
+  -ss start entries to skip, --start_skip start entries to skip
+                        Number of entries to skip at start of the write
+  -es ending entries to skip, --end_skip ending entries to skip
+                        Number of entries to skip at end of the write
+  --skip_note           If set, skip printing adapter notes and associated delays
+  -rb, --reverse_byte_order
+                        If set, the input file will be read in Little Endian format
+```
+
+Please note that the dupico is not meant as a programmer, and thus writing is supported only by some ICs (and the feature
+can be almost considered a nice side effect of the other functionality).
+
+That said, I used the write feature successfully to load data on battery backed SRAM ICs.
 
 ## IC Definition format
 
