@@ -38,10 +38,10 @@ def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: 
     for el in elements:
         data: int = el.data | (el.z_mask if hiz_high else 0)
         data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
-        data_arr.append(*data_b)
+        data_arr += bytearray(data_b)
 
         data_z: bytes = el.z_mask.to_bytes(bytes_per_entry, 'big')
-        hiz_arr.append(*data_z)
+        hiz_arr += bytearray(data_z)
 
     return (data_arr, hiz_arr, hashlib.sha1(data_arr).hexdigest())  
 
