@@ -87,7 +87,11 @@ def _build_argsparser() -> argparse.ArgumentParser:
     parser_read.add_argument('--skip_note',
                              action='store_true',
                              default=False,
-                             help='If present, skip printing adapter notes and associated delays')
+                             help='If set, skip printing adapter notes and associated delays')
+    parser_read.add_argument('-rb', '--reverse_byte_order',
+                             action='store_true',
+                             default=False,
+                             help='If set, the output binary file will be written in Little Endian format')
 
     parser_write = subparsers.add_parser(Subcommands.WRITE.value, help='Write the content of a file into a supported (and writable) IC')
     parser_write.add_argument('-d', '--definition',
@@ -112,7 +116,11 @@ def _build_argsparser() -> argparse.ArgumentParser:
     parser_write.add_argument('--skip_note',
                              action='store_true',
                              default=False,
-                             help='If present, skip printing adapter notes and associated delays')
+                             help='If set, skip printing adapter notes and associated delays')
+    parser_read.add_argument('-rb', '--reverse_byte_order',
+                             action='store_true',
+                             default=False,
+                             help='If set, the input file will be read in Little Endian format')
 
 
     return parser
@@ -144,7 +152,7 @@ def test_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands]) -> 
     else:
         print(f'Test result is {"OK" if test_result else "BAD"}!')
 
-def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, outf: str, outfb: str | None = None, outfbz: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False) -> None:
+def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, outf: str, outfb: str | None = None, outfbz: str | None = None, check_hiz: bool = False, hiz_high: bool = False, skip_note: bool = False, reverse_byte_order: bool = False) -> None:
     _LOGGER.debug(f'Read command with definition {ic_definition.name}, output table {outf}, output binary {outfb}, output Hi-Z binary {outfbz}, check Hi-Z {check_hiz}, treat Hi-Z as high {hiz_high}')
 
     if outfbz and not check_hiz:
@@ -169,7 +177,7 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
     print(f'Reading took {math.ceil(end_time - start_time)} seconds.')
 
     OutFileUtilities.build_output_table_file(outf, ic_definition, ic_data)
-    data_array, hiz_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high)
+    data_array, hiz_array, sha1sum = OutFileUtilities.build_binary_array(ic_definition, ic_data, hiz_high, reverse_byte_order)
 
     print(f'Data has SHA1SUM {sha1sum}')
 
@@ -181,7 +189,7 @@ def read_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_
 
     return
 
-def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, begin_skip: int = 0, end_skip: int = 0, skip_note: bool = False) -> None:
+def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic_definition: ICDefinition, inf: str, begin_skip: int = 0, end_skip: int = 0, skip_note: bool = False, reverse_byte_order: bool = False) -> None:
     _LOGGER.debug(f'Write command with definition {ic_definition.name} and input file {inf}')
 
     print(f'Writing {ic_definition.name}')
@@ -193,6 +201,7 @@ def write_command(ser: serial.Serial, cmd_class: type[HardwareBoardCommands], ic
         print_note(ic_definition.adapter_notes)
 
     bytes_per_entry: int = -(len(ic_definition.data) // -8)
+    # TODO: Handle reverse byte ordering flag
     data_list: list[int] = FileUtils.load_file_data(inf, bytes_per_entry)
     
     start_time: float = time.time()
@@ -269,14 +278,16 @@ def cli() -> int:
                     write_command(ser_port, command_class, ic_definition, args.infile, 
                                   args.start_skip,
                                   args.end_skip,
-                                  args.skip_note)
+                                  args.skip_note,
+                                  args.reverse_byte_order)
                 case Subcommands.READ.value:
                     read_command(ser_port, command_class, ic_definition, args.outfile,
                                  args.outfile_binary if args.outfile_binary else None,
                                  args.outfile_binary_z if args.outfile_binary_z else None,
                                  args.check_hiz,
                                  args.hiz_high,
-                                 args.skip_note)
+                                 args.skip_note,
+                                 args.reverse_byte_order)
                 case _:
                     _LOGGER.critical(f'Unsupported command {args.subcommand}')
 

@@ -3,7 +3,7 @@
 import math
 import hashlib
 
-from typing import Generator
+from typing import Generator, Literal
 
 from dpdumperlib.ic.ic_definition import ICDefinition
 
@@ -18,7 +18,7 @@ def _bits_iterator(n: int) -> Generator[int, None, None]:
         yield b
         n ^= b
 
-def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False) -> tuple[bytearray, bytearray, str]:
+def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: bool = False, reverse_byte_order: bool = False) -> tuple[bytearray, bytearray, str]:
     """Builds a binary array out of data read from the IC, and returns it plus the SHA1SUM of the data
 
     Args:
@@ -34,13 +34,14 @@ def build_binary_array(ic: ICDefinition, elements: list[DataElement], hiz_high: 
     bytes_per_entry = -(data_width // -8)
     data_arr: bytearray = bytearray()
     hiz_arr: bytearray = bytearray()
+    endianness: Literal['big', 'little'] = 'little' if reverse_byte_order else 'big'
 
     for el in elements:
         data: int = el.data | (el.z_mask if hiz_high else 0)
-        data_b: bytes = data.to_bytes(bytes_per_entry, 'big')
+        data_b: bytes = data.to_bytes(bytes_per_entry, endianness)
         data_arr += bytearray(data_b)
 
-        data_z: bytes = el.z_mask.to_bytes(bytes_per_entry, 'big')
+        data_z: bytes = el.z_mask.to_bytes(bytes_per_entry, endianness)
         hiz_arr += bytearray(data_z)
 
     return (data_arr, hiz_arr, hashlib.sha1(data_arr).hexdigest())  

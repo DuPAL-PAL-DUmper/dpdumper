@@ -5,6 +5,9 @@ Changelog for the dpdumper utility
 ### Fix
 - Fix reads with a data bus over 8 bits
 
+### Added
+- 'rb' flag to reverse byte order and write binaries as little endian
+
 ## [0.4.2] - 2024-09-19
 ### Changed
 - Reworded some prints when reading and writing ICs
