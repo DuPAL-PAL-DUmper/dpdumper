@@ -1,6 +1,10 @@
 # Changelog
 Changelog for the dpdumper utility
 
+## [0.4.4] - 2025-09-05
+### Changed
+- Use the standard ASCII `=` character for the progress bar
+
 ## [0.4.3] - 2024-09-28
 ### Fix
 - Fix reads with a data bus over 8 bits

@@ -15,7 +15,7 @@ from dpdumper.dumper_utilities import grouped_iterator
 _LOGGER = logging.getLogger(__name__)
 
 # Taken from https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
-def _print_progressBar (iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 50, fill: str = '█', printEnd: str = '\r'):
+def _print_progressBar (iteration: int, total: int, prefix: str = '', suffix: str = '', decimals: int = 1, length: int = 50, fill: str = '=', printEnd: str = '\r'):
     percent: str = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength: int = int(length * iteration // total)
     bar: str = fill * filledLength + '-' * (length - filledLength)
