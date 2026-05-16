@@ -14,6 +14,7 @@ from dupicolib.hardware_board_commands import HardwareBoardCommands
 from dupicolib.board_command_class_factory import BoardCommandClassFactory
 from dupicolib.board_utilities import BoardUtilities
 from dupicolib.board_fw_version import FwVersionTools, FWVersionDict
+from dupicolib.board_interfaces.brutus28_board_commands import Brutus28BoardCommands
 
 from dpdumperlib.ic.ic_loader import ICLoader
 from dpdumperlib.ic.ic_definition import ICDefinition
@@ -33,6 +34,10 @@ class Subcommands(Enum):
     TEST = 'test'
     WRITE = 'write'
     READ = 'read'
+
+class BoardTypes(Enum):
+    DUPICO = 'dupico'
+    BRUTUS28 = 'brutus28'
 
 def _build_argsparser() -> argparse.ArgumentParser:
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
@@ -54,6 +59,10 @@ def _build_argsparser() -> argparse.ArgumentParser:
                         metavar="Baud rate",
                         default=115200,
                         help='Speed at which to the serial port is opened')
+    parser.add_argument('--board',
+                        choices=[board_type.value for board_type in BoardTypes],
+                        default=BoardTypes.DUPICO.value,
+                        help='Board type connected to the serial port')
     
     subparsers = parser.add_subparsers(help='supported subcommands', dest='subcommand')
     subparsers.add_parser(Subcommands.TEST.value, help='Execute the selftest routine of the dupico board')
@@ -235,46 +244,64 @@ def cli() -> int:
                                      parity = 'N',
                                      timeout = 5.0)
 
-            if not BoardUtilities.initialize_connection(ser_port):
-                _LOGGER.critical('Serial port connected, but the board did not respond in time.')
-                return -1
-            
-            _LOGGER.info(f'Board connected @{args.port}, speed:{args.baudrate} ...')
-            model: int | None = HardwareBoardCommands.get_model(ser_port)
-            if model is None:
-                _LOGGER.critical('Unable to retrieve model number...')
-                return -1
-            elif model < MIN_SUPPORTED_MODEL:
-                _LOGGER.critical(f'Model {model} is not supported.')
-                return -1
-            else:
-                _LOGGER.info(f'Model {model} detected!')
+            board_type = BoardTypes(args.board)
+            model: int | None
+            fw_version: str | None
+            command_class: type[HardwareBoardCommands]
 
-            fw_version: str | None = HardwareBoardCommands.get_version(ser_port)
-            fw_version_dict: FWVersionDict
-            if fw_version is None:
-                _LOGGER.critical('Unable to retrieve firmware version...')
-                return -1
-            else:
-                fw_version_dict = FwVersionTools.parse(fw_version) # Check that the version is formatted correctly
-                _LOGGER.info(f'Firmware version on board is "{fw_version}"')
+            if board_type == BoardTypes.BRUTUS28:
+                if not Brutus28BoardCommands.initialize_connection(ser_port):
+                    _LOGGER.critical('Serial port connected, but the Brutus28 command prompt did not respond in time.')
+                    return -1
 
-            # Now we have enough information to obtain the class that handles commands specific for this board
-            command_class: type[HardwareBoardCommands] = BoardCommandClassFactory.get_command_class(model, fw_version_dict) # type: ignore
+                command_class = Brutus28BoardCommands
+                model = command_class.get_model(ser_port)
+                fw_version = command_class.get_version(ser_port)
+                _LOGGER.info(f'Brutus28 connected @{args.port}, speed:{args.baudrate}, firmware:"{fw_version}" ...')
+            else:
+                if not BoardUtilities.initialize_connection(ser_port):
+                    _LOGGER.critical('Serial port connected, but the board did not respond in time.')
+                    return -1
+
+                _LOGGER.info(f'Board connected @{args.port}, speed:{args.baudrate} ...')
+                model = HardwareBoardCommands.get_model(ser_port)
+                if model is None:
+                    _LOGGER.critical('Unable to retrieve model number...')
+                    return -1
+                elif model < MIN_SUPPORTED_MODEL:
+                    _LOGGER.critical(f'Model {model} is not supported.')
+                    return -1
+                else:
+                    _LOGGER.info(f'Model {model} detected!')
+
+                fw_version = HardwareBoardCommands.get_version(ser_port)
+                fw_version_dict: FWVersionDict
+                if fw_version is None:
+                    _LOGGER.critical('Unable to retrieve firmware version...')
+                    return -1
+                else:
+                    fw_version_dict = FwVersionTools.parse(fw_version) # Check that the version is formatted correctly
+                    _LOGGER.info(f'Firmware version on board is "{fw_version}"')
+
+                # Now we have enough information to obtain the class that handles commands specific for this board
+                command_class = BoardCommandClassFactory.get_command_class(model, fw_version_dict) # type: ignore
 
             # Load and check IC definition requirements
             ic_definition: ICDefinition
             if hasattr(args, 'definition') and args.definition is not None:
                 ic_definition = ICLoader.extract_definition_from_file(args.definition)
-                
-                if ic_definition.hw_model > model:
+
+                if board_type == BoardTypes.BRUTUS28:
+                    if ic_definition.hw_model != Brutus28BoardCommands.MODEL:
+                        raise ValueError(f'Current hardware model {model} requires a Brutus28-specific definition with requirement {Brutus28BoardCommands.MODEL}')
+                elif ic_definition.hw_model > model:
                     raise ValueError(f'Current hardware model {model} does not satisfy requirement {ic_definition.hw_model}')
 
             match args.subcommand:
                 case Subcommands.TEST.value:
                     test_command(ser_port, command_class)
                 case Subcommands.WRITE.value:
-                    write_command(ser_port, command_class, ic_definition, args.infile, 
+                    write_command(ser_port, command_class, ic_definition, args.infile,
                                   args.start_skip,
                                   args.end_skip,
                                   args.skip_note,
@@ -301,4 +328,4 @@ def cli() -> int:
                 ser_port.close()
 
         _LOGGER.info('Quitting.')
-        return 1 
+        return 1

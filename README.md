@@ -15,7 +15,7 @@ It takes a description of the IC to read in TOML format and outputs a human read
 ## Command line
 
 ```
-usage: dpdumper [-h] [-v] [--version] -p [serial port] [-b Baud rate] {test,read,write} ...
+usage: dpdumper [-h] [-v] [--version] -p [serial port] [-b Baud rate] [--board {dupico,brutus28}] {test,read,write} ...
 
 A tool for fiddling with a dupico board
 
@@ -33,6 +33,8 @@ options:
                         Serial port associated with the board
   -b Baud rate, --baudrate Baud rate
                         Speed at which to the serial port is opened
+  --board {dupico,brutus28}
+                        Board type connected to the serial port
 ```
 
 This tool supports 3 commands: `test`, `read` and `write`. All the commands require passing the `-p` parameter to specify which com port the dupico is associated to. If you pass `-p` without any parameter, the tool will print a list of available ports for you to choose from:
@@ -43,6 +45,16 @@ Available serial ports:
         COM4 - USB Serial Device (COM4)
         COM3 - USB Serial Device (COM3)
 ```
+
+### Brutus28
+
+The host-side dumper can also talk to a Brutus28 board with its stock text command shell:
+
+```
+dpdumper --board brutus28 -p /dev/ttyACM0 read -d examples/brutus28/PAL12x6.toml -o pal12x6.txt -ob pal12x6.bin
+```
+
+Use Brutus28-specific definitions with `[requirements].hardware = 28`; the DuPAL adapter definitions use different socket remapping and are intentionally rejected on the Brutus28 path.
 
 ### Test
 This command simply asks the dupico to run the internal self-test procedure, and relays the result:
